@@ -12,7 +12,7 @@
 
 #define BWIDTH  120
 #define BHEIGHT 45
-#define BUFFERSIZE 8192
+#define BUFFERSIZE 32000
 
 #define X1 15
 #define X2 155
@@ -572,12 +572,12 @@ static void SAVEDATA(GtkWidget* saveBUTTON, GTKwrapper* state){
     // update the file name in the entry field
     gtk_entry_set_text(GTK_ENTRY(state->saveENTRY), tmpPath);
     state->increment++;
-    savedata(gpibHANDLE, tmpPath, state->comboVARS, (int)BUFFERSIZE);
+    savedata(gpibHANDLE, tmpPath, state->listVARS, (int)BUFFERSIZE);
   }
   else {
     // if the incrementor is deselected then reset.
     state->increment = 0;
-    savedata(gpibHANDLE, state->filename, state->comboVARS, (int)BUFFERSIZE);
+    savedata(gpibHANDLE, state->filename, state->listVARS, (int)BUFFERSIZE);
   }
 }
 
