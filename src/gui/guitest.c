@@ -267,6 +267,7 @@ static void generateSMU(GTKwrapper* state){
   gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT(state->SMU[0]),NULL, "SMU3");
   gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT(state->SMU[0]),NULL, "SMU4");
   gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT(state->SMU[0]),NULL, "SMU5");
+  gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT(state->SMU[0]),NULL, "GNDU");
   gtk_combo_box_set_active(GTK_COMBO_BOX(state->SMU[0]),0);
   gtk_widget_set_size_request(state->SMU[0], BWIDTH, BHEIGHT);
   gtk_fixed_put(GTK_FIXED(state->fixed), state->SMU[0], X1, 110);

@@ -20,23 +20,26 @@ int setSMU(int ud, const char *vars[])
   strcat(cmd1,":VNAME ");
   _write(ud,strcat(cmd1,vars[1]));
 
-  //INAME
-  char cmd2[32] = ":PAGE:CHAN:";
-  strcat(cmd2,vars[0]);
-  strcat(cmd2,":INAME ");
-  _write(ud,strcat(cmd2,vars[2]));
+  if (strcmp(vars[0], "GNDU")){
+      //INAME
+      char cmd2[32] = ":PAGE:CHAN:";
+      strcat(cmd2,vars[0]);
+      strcat(cmd2,":INAME ");
+      _write(ud,strcat(cmd2,vars[2]));
 
-  //MODE
-  char cmd3[32] = ":PAGE:CHAN:";
-  strcat(cmd3,vars[0]);
-  strcat(cmd3,":MODE ");
-  _write(ud,strcat(cmd3,vars[3]));
+      //MODE
+      char cmd3[32] = ":PAGE:CHAN:";
+      strcat(cmd3,vars[0]);
+      strcat(cmd3,":MODE ");
+      _write(ud,strcat(cmd3,vars[3]));
     
-  //FUNC
-  char cmd4[32] = ":PAGE:CHAN:";
-  strcat(cmd4,vars[0]);
-  strcat(cmd4,":FUNC ");
-  _write(ud,strcat(cmd4,vars[4]));
+      //FUNC
+      char cmd4[32] = ":PAGE:CHAN:";
+      strcat(cmd4,vars[0]);
+      strcat(cmd4,":FUNC ");
+      _write(ud,strcat(cmd4,vars[4]));
+
+  }
    
   if (vars[5] && vars[6]){
     char cmd5[32] = "PAGE:MEAS:CONS:";
