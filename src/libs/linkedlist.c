@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "../inc/linkedlist.h"
+#include "linkedlist.h"
 
 #define SIZE 100
 node_t* initialize_list(void){

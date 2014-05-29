@@ -2,10 +2,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <gtk/gtk.h>
-#include "../inc/stringutils.h"
-#include "../inc/linkedlist.h"
-#include "../inc/IVsweep.h"
-#include "../inc/gpib_io.h"
+#include "stringutils.h"
+#include "linkedlist.h"
+#include "IVsweep.h"
+#include "gpib_io.h"
 
 // GPIB BUFFER SIZE 32kb 
 #define BUFFERSIZE 32000
@@ -78,6 +78,12 @@ typedef struct{
   GtkWidget *varLABEL4;
   GtkWidget *varLABEL5;
   GtkWidget **VAR;
+
+  GtkWidget *uvarBUTTON;
+  GtkWidget *uvarLABEL1;
+  GtkWidget *uvarLABEL2;
+  GtkWidget *uvarLABEL3;
+  GtkWidget **UVAR;
 
   // List Control
   GtkWidget *listENTRY; 
@@ -382,6 +388,15 @@ static void modeChanger(GtkWidget *widget, GTKwrapper* state){
   }
 }
 
+static void SETUVAR(GtkWidget* widget, GTKwrapper* state){
+
+  //  state->UVAR[0]
+  //  state->UVAR[0]
+  //  state->UVAR[0]
+  g_print("HELLO");
+
+}
+
 /////////////////////////////////
 // VARIABLE CONTROL GENERATION //
 /////////////////////////////////
@@ -451,6 +466,36 @@ static void generateVAR(GTKwrapper* state){
   g_signal_connect(state->VAR[1],"changed", G_CALLBACK(modeChanger), state);
   state->varLABEL1 = gtk_label_new("Mode");
 
+  // !! USER VARIABLE CONTROL !!
+  state->UVAR = g_new(GtkWidget*, 3);
+  state->UVAR[0] = gtk_entry_new();
+  gtk_editable_set_editable(GTK_EDITABLE(state->UVAR[0]), TRUE);
+  gtk_entry_set_width_chars((GtkEntry*)state->UVAR[0],14);
+  gtk_widget_set_size_request(state->UVAR[0], BWIDTH, BHEIGHT);
+  gtk_fixed_put(GTK_FIXED(state->fixed), state->UVAR[0], X1, Y5);
+  state->uvarLABEL1 = gtk_label_new("User Variable");
+  gtk_fixed_put(GTK_FIXED(state->fixed), state->uvarLABEL1, X1, (int)Y5-20);
+
+  state->UVAR[1] = gtk_entry_new();
+  gtk_editable_set_editable(GTK_EDITABLE(state->UVAR[1]), TRUE);
+  gtk_entry_set_width_chars((GtkEntry*)state->UVAR[1],14);
+  gtk_widget_set_size_request(state->UVAR[1], BWIDTH, BHEIGHT);
+  gtk_fixed_put(GTK_FIXED(state->fixed), state->UVAR[1], X2, Y5);
+  state->uvarLABEL2 = gtk_label_new("Units");
+  gtk_fixed_put(GTK_FIXED(state->fixed), state->uvarLABEL2, X2, (int)Y5-20);
+
+  state->UVAR[2] = gtk_entry_new();
+  gtk_editable_set_editable(GTK_EDITABLE(state->UVAR[2]), TRUE);
+  gtk_entry_set_width_chars((GtkEntry*)state->UVAR[2],14);
+  gtk_widget_set_size_request(state->UVAR[2], BWIDTH, BHEIGHT);
+  gtk_fixed_put(GTK_FIXED(state->fixed), state->UVAR[2], X3, Y5);
+  state->uvarLABEL3 = gtk_label_new("Function");
+  gtk_fixed_put(GTK_FIXED(state->fixed), state->uvarLABEL3, X3, (int)Y5-20);
+
+  state->uvarBUTTON = gtk_button_new_with_label("<--- ADD");
+  g_signal_connect(state->uvarBUTTON,"clicked", G_CALLBACK(SETUVAR), state);
+  gtk_fixed_put(GTK_FIXED(state->fixed), state->uvarBUTTON, X4, Y5);
+  gtk_widget_set_size_request(state->uvarBUTTON, BWIDTH, BHEIGHT);
 }
 
 ////////////////////////////

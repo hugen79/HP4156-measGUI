@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "gpib/ib.h"
-#include "../inc/gpib_io.h"
+#include "gpib_io.h"
 
 /*** GPIB INPUT OUTPUT COMMANDS ***/
 int _write(int ud, char* command)

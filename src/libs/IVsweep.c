@@ -3,10 +3,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include "gpib/ib.h"
-#include "../inc/stringutils.h"
-#include "../inc/linkedlist.h"
-#include "../inc/gpib_io.h"
-#include "../inc/IVsweep.h"
+#include "stringutils.h"
+#include "linkedlist.h"
+#include "gpib_io.h"
+#include "IVsweep.h"
 
 /*** HP4156 SPECIFIC FUNCTIONS ***/
 
