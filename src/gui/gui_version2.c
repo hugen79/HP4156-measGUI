@@ -25,6 +25,8 @@ int gpibHANDLE;
 
 // The application
 typedef struct{
+
+  int MODE;
   int NUMBER;
 
   // The application 
@@ -315,50 +317,50 @@ static void generateSMU(GTKwrapper* state){
 ///////////////////////////////////////////////////////////////////////////////////////
 //                            SWEEP MODE CONTROL                                     // 
 ///////////////////////////////////////////////////////////////////////////////////////
-static void generateSWEEPMODE (GSimpleAction *action, GVariant*parameter,  void* gui_state)
-{  
-  GTKwrapper* _state = (GTKwrapper*)malloc(sizeof(GTKwrapper*));
-  _state = gui_state; 
-  generateINIT(_state);
-  generateSMU(_state);
-
-  gtk_widget_show_all(_state->window); 
-}
-
 static void destroySWEEPMODE(GTKwrapper* state){
- 
-  // DESTROY GPIB
-  if (GTK_IS_WIDGET(state->initBUTTON))
+   // DESTROY GPIB
+  if ( (state->initBUTTON!=NULL) && (GTK_IS_WIDGET(state->initBUTTON)))
     gtk_widget_destroy (state->initBUTTON);
-  if (GTK_IS_WIDGET(state->measBUTTON))
+  if ( (state->measBUTTON!=NULL) && (GTK_IS_WIDGET(state->measBUTTON)))
     gtk_widget_destroy (state->measBUTTON);
-  if (GTK_IS_WIDGET(state->gpibBUTTON))
+  if ( (state->gpibBUTTON!=NULL) && (GTK_IS_WIDGET(state->gpibBUTTON)))
     gtk_widget_destroy (state->gpibBUTTON);
   // DESTROY SMU
-  if (GTK_IS_WIDGET(state->smuBUTTON))
+  if ( (state->smuBUTTON!=NULL) && (GTK_IS_WIDGET(state->smuBUTTON)))
     gtk_widget_destroy (state->smuBUTTON);
-  if (GTK_IS_WIDGET(state->disBUTTON))
+  if ( (state->disBUTTON!=NULL) && (GTK_IS_WIDGET(state->disBUTTON)))
     gtk_widget_destroy (state->disBUTTON);
-  if (GTK_IS_WIDGET(state->smuLABEL1))
+  if ( (state->initBUTTON!=NULL) && (GTK_IS_WIDGET(state->smuLABEL1)))
     gtk_widget_destroy (state->smuLABEL1);
-  if (GTK_IS_WIDGET(state->smuLABEL2))
+  if ( (state->initBUTTON!=NULL) && (GTK_IS_WIDGET(state->smuLABEL2)))
     gtk_widget_destroy (state->smuLABEL2);
-  if (GTK_IS_WIDGET(state->smuLABEL3))
+  if ( (state->initBUTTON!=NULL) && (GTK_IS_WIDGET(state->smuLABEL3)))
     gtk_widget_destroy (state->smuLABEL3);
-  if (GTK_IS_WIDGET(state->smuLABEL4))
+  if ( (state->initBUTTON!=NULL) && (GTK_IS_WIDGET(state->smuLABEL4)))
     gtk_widget_destroy (state->smuLABEL4);
-  if (GTK_IS_WIDGET(state->smuLABEL5))
+  if ( (state->initBUTTON!=NULL) && (GTK_IS_WIDGET(state->smuLABEL5)))
     gtk_widget_destroy (state->smuLABEL5);
-  if (GTK_IS_WIDGET(state->smuLABEL6))
+  if ( (state->initBUTTON!=NULL) && (GTK_IS_WIDGET(state->smuLABEL6)))
     gtk_widget_destroy (state->smuLABEL6);
   int i = 0;
   for (i=0; i<7; i++){
-    if (GTK_IS_WIDGET(state->SMU[i]))
+    if ( (state->initBUTTON!=NULL) && (GTK_IS_WIDGET(state->SMU[i])))
       gtk_widget_destroy (state->SMU[i]);
   }
 }
 
+static void generateSWEEPMODE (GSimpleAction *action, GVariant*parameter,  void* gui_state)
+{  
+  GTKwrapper* _state = (GTKwrapper*)malloc(sizeof(GTKwrapper*));
+  _state = gui_state; 
 
+  if (_state->MODE != 1){
+    generateINIT(_state);
+    generateSMU(_state);
+  }
+  _state->MODE = 1;
+  gtk_widget_show_all(_state->window); 
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////
 //                         SAMPLING MODE CONTROL                                     // 
@@ -368,6 +370,7 @@ static void generateSAMPLINGMODE (GSimpleAction *action,GVariant*parameter, void
   GTKwrapper* _state = (GTKwrapper*)malloc(sizeof(GTKwrapper*));
   _state = gui_state; 
   destroySWEEPMODE(_state);
+  _state->MODE = 2;
   gtk_widget_show_all(_state->window); 
 }
 
@@ -411,6 +414,7 @@ static void activate (GtkApplication *app, GTKwrapper* state)
 
   state->fixed = gtk_fixed_new();
   gtk_container_add(GTK_CONTAINER(state->window), state->fixed); 
+  state->MODE = 0;
 }
 
 int main (int argc, char **argv)
