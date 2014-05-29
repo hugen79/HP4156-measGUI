@@ -68,7 +68,7 @@ int _initialize(int gpib)
   // ibdev(board index, primary address, secondary address, timeout, err, err)  
   // T1s = 1 second timeout
   int ud; 
-  ud = ibdev(0, gpib, 0, T3s, 1, 0); 
+  ud = ibdev(0, gpib, 0, T1s, 1, 0); 
   _write(ud,"*CLS"); 
   _write(ud,"*RST");
   return ud;   

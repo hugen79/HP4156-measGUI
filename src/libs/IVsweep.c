@@ -13,9 +13,10 @@
 //SMU CONTROL
 int setSMU(int ud, const char *vars[])
 {
+  char cmd1[32];
 
   //VNAME
-  char cmd1[32] = ":PAGE:CHAN:";
+  strcpy(cmd1,":PAGE:CHAN:");
   strcat(cmd1,vars[0]);
   strcat(cmd1,":VNAME ");
   _write(ud,strcat(cmd1,vars[1]));
@@ -64,9 +65,13 @@ int disableSMU(int ud, const char *var)
   _write(ud,strcat(cmd,":DIS"));
   return 0;
 }
+int disableALLSMU(int ud){
+  _write(ud, ":PAGE:CHAN:ALL:DIS");
+}
+
 
 //SET VAR1 or VAR2
-int setVAR(int ud, const char *vars[])
+int setSweepVAR(int ud, const char *vars[])
 {
 
   char cmd[32] = ":PAGE:MEAS:";
@@ -118,6 +123,63 @@ int setVAR(int ud, const char *vars[])
   strcat(cmd5,"COMP ");
   _write(ud, strcat(cmd5, vars[5]));
   return 0;
+}
+
+
+
+//SET VAR1 or VAR2
+int setSamplingVAR(int ud, const char *vars[])
+{
+
+  // _write(":PAGE:MEAS:SAMP:MODE LIN");
+
+
+  /* char cmd[32] = ":PAGE:MEAS:"; */
+  /* strcat(cmd, vars[0]); */
+  /* strcat(cmd, ":"); */
+ 
+  /* // Linear or Log. Do not need to issue this  */
+  /* // command for var2 */
+  /* if (strcmp(vars[0],"VAR2")){ */
+  /*   char cmd1[32];  */
+  /*   strcpy(cmd1,cmd);  */
+  /*   strcat(cmd1,"SPAC "); */
+  /*   _write(ud, strcat(cmd1, vars[1])); */
+  /* } */
+  /* // Start */
+  /* char cmd2[32]; */
+  /* strcpy(cmd2,cmd); */
+  /* strcat(cmd2,"STAR "); */
+  /* _write(ud, strcat(cmd2, vars[2])); */
+
+  /* // Stop or nPoints */
+  /* char cmd3[32]; */
+  /* strcpy(cmd3,cmd); */
+  /* if (strcmp(vars[0],"VAR1")==0){ */
+  /*   strcat(cmd3,"STOP "); */
+  /*   _write(ud, strcat(cmd3, vars[3])); */
+  /* } */
+  /* else{ */
+  /*   printf("%s", vars[0]); */
+  /*   strcat(cmd3,"POIN "); */
+  /*   _write(ud, strcat(cmd3, vars[3])); */
+
+  /* } */
+  /* if (strncmp(vars[1],"LIN",3) == 0) */
+  /* { */
+  /*   // Step */
+  /*   char cmd4[32]; */
+  /*   strcpy(cmd4,cmd); */
+  /*   strcat(cmd4,"STEP "); */
+  /*   _write(ud, strcat(cmd4, vars[4])); */
+  /* } */
+    
+  /* // Compliance */
+  /* char cmd5[32]; */
+  /* strcpy(cmd5,cmd); */
+  /* strcat(cmd5,"COMP "); */
+  /* _write(ud, strcat(cmd5, vars[5])); */
+  /* return 0; */
 }
 
 int addToList(int ud, char* variable){ 
@@ -262,3 +324,20 @@ int savedata(int ud, char* filename, node_t *listVARS, int buffersize){
   listVARS = listVARS->head;
   writeToFile(filename,listVARS , DATA, i);
 }
+
+int _setSweepMode(int ud)
+{
+  _write(ud,":PAGE:CHAN:MODE SWE");
+}
+
+int _setSamplingMode(int ud)
+{
+  _write(ud,":PAGE:CHAN:MODE SAMP");
+}
+
+
+
+
+
+
+
