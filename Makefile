@@ -13,7 +13,7 @@ all: _bin
 
 _bin: _libs
 	cd $(GUI_SOURCE); \
-	$(CC) -c $(OPTFLAGS) *.c; \
+	$(CC) -c $(OPTFLAGS) gui_version2.c; \
 	mv *.o ../../build ; \
 	cd ../../build ; \
 	$(CC) -o $(PROGRAM) *.o $(LDFLAGS);  

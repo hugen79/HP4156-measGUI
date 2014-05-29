@@ -650,6 +650,20 @@ static void generateWindowSeparators(GTKwrapper *state)
   gtk_fixed_put(GTK_FIXED(state->fixed), separator3, BWIDTH,380);
 }
 
+static void generateApplication(GTKwrapper *state){
+
+  // Generate INIT and SMU controls
+  generateINIT(state);
+  generateSMU(state);
+  generateVAR(state);
+  
+  // Generate list control and Save stuff
+  generateListControl(state);
+  generateFileSelector(state);
+  generateWindowSeparators(state);
+}
+
+
 /////////////////////////////
 //       MAIN LOOP         //
 /////////////////////////////
@@ -665,16 +679,27 @@ int main (int argc, char *argv[])
   gtk_init (&argc, &argv); 
   generateWindow(state);
 
-  // Generate INIT and SMU controls
-  generateINIT(state);
-  generateSMU(state);
-  generateVAR(state);
-  
-  // Generate list control and Save stuff
-  generateListControl(state);
-  generateFileSelector(state);
-  generateWindowSeparators(state);
 
+  /* Menu control */
+  GtkWidget* menu_bar;
+  GtkWidget* file_menu;
+  GtkWidget* open_item;
+  GtkWidget* save_item;
+
+  /* Create the menu items */
+  file_menu = gtk_menu_new ();    
+  open_item = gtk_menu_item_new_with_label ("Open");
+  save_item = gtk_menu_item_new_with_label ("Save");
+  gtk_widget_show (open_item);
+  gtk_widget_show (save_item);
+
+
+  menu_bar = gtk_menu_bar_new ();
+  gtk_container_add (GTK_CONTAINER (state->fixed), menu_bar);
+  gtk_fixed_put(GTK_FIXED(state->fixed), menu_bar, 15, 15);
+  
+  gtk_widget_show (menu_bar);
+  
   /* Hand control over to the main loop. */
   gtk_widget_show_all(state->window); 
   gtk_main ();
