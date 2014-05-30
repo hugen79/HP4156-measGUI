@@ -35,7 +35,8 @@ char* _read(int ud, char* command, int max_num_bytes)
   _status(command);
   printf("trying to read %i bytes from device...\n", max_num_bytes);
   ibrd(ud, buffer, buffer_size - 1);
-  sleep(3);
+  _write(ud,"*WAI");
+  //usleep(300000);
   is_string = 1;
   for(i = 0; i < ThreadIbcntl(); ++i){
     if(isascii(buffer[i]) == 0){

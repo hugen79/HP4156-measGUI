@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <gtk/gtk.h>
+#include <gdk/gdk.h>
+#include <cairo.h>
 #include "stringutils.h"
 #include "linkedlist.h"
 #include "IVsweep.h"
@@ -55,11 +57,15 @@ typedef struct{
   GtkWidget *measBUTTON;
   GtkWidget *gpibBUTTON;
 
+  // SWEEP AND SAMPLING LABELS 
+  GtkWidget *MODELABEL;  
+
   // the main window
   GtkWidget *window;
   GtkWidget *fixed;
-
-    // SMU control
+  GdkWindow *gd;
+  
+  // SMU control
   GtkWidget *smuBUTTON; 
   GtkWidget *disBUTTON;  
   GtkWidget *smuLABEL1;
@@ -130,6 +136,20 @@ static void MEASURE(GtkWidget *measBUTTON)
   measure(gpibHANDLE);
 }
 
+static void generateMODELABEL(GTKwrapper* state, char* str){
+  state->MODELABEL = gtk_label_new(NULL);
+  gtk_label_set_use_markup (GTK_LABEL (state->MODELABEL),TRUE);
+  gtk_fixed_put(GTK_FIXED(state->fixed), state->MODELABEL,(int)X4-80,  (int)Y1+10);
+
+  const char *format = "<span size=\"16000\">%s</span>";
+  char *markup;
+  markup = g_markup_printf_escaped (format, str);
+  gtk_label_set_markup (GTK_LABEL (state->MODELABEL),markup);
+   //gtk_label_set_text (GTK_LABEL (state->MODELABEL),str); 
+  g_free (markup);
+}
+
+
 ///////////////////////////////////////////
 // INITIALIZATION AND MEASURE GENERATION //
 ///////////////////////////////////////////
@@ -153,6 +173,7 @@ static void generateINIT(GTKwrapper* state){
   gtk_fixed_put(GTK_FIXED(state->fixed), state->measBUTTON, X6, Y1);
   g_signal_connect(state->measBUTTON,"clicked", G_CALLBACK(MEASURE),NULL);
   gtk_widget_set_size_request(state->measBUTTON, BWIDTH, BHEIGHT);
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -389,12 +410,31 @@ static void modeChanger(GtkWidget *widget, GTKwrapper* state){
 }
 
 static void SETUVAR(GtkWidget* widget, GTKwrapper* state){
+  char* vname = (char*)gtk_entry_get_text((GtkEntry*)state->UVAR[0]);
+  char* vunit = (char*)gtk_entry_get_text((GtkEntry*)state->UVAR[1]);
+  char* vexpr = (char*)gtk_entry_get_text((GtkEntry*)state->UVAR[2]);
 
-  //  state->UVAR[0]
-  //  state->UVAR[0]
-  //  state->UVAR[0]
-  g_print("HELLO");
+  // Add to the varlist and regenerate the combobox
+  add_to_list_unique(state->comboVARS,strdup(vname));
+  gtk_combo_box_text_remove_all(GTK_COMBO_BOX_TEXT(state->listCOMBO));   
+  while (state->comboVARS->next != NULL){
+    gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (state->listCOMBO),NULL,state->comboVARS->data);
+    state->comboVARS = state->comboVARS->next;
+    gtk_combo_box_set_active (GTK_COMBO_BOX (state->listCOMBO), 0);
+  }
+  // rewind the pointer
+  state->comboVARS = state->comboVARS->head;
 
+  char* _vname;
+  char* _vunit;
+  char* _vexpr;
+
+  _vname = stringify(vname);
+  _vunit = stringify(vunit);
+  _vexpr = stringify(vexpr);
+  
+  const char *data[3] = {_vname, _vunit, _vexpr};
+  setUserFunction(gpibHANDLE, data);
 }
 
 /////////////////////////////////
@@ -465,7 +505,9 @@ static void generateVAR(GTKwrapper* state){
   gtk_fixed_put(GTK_FIXED(state->fixed), state->VAR[1], X2, Y4);
   g_signal_connect(state->VAR[1],"changed", G_CALLBACK(modeChanger), state);
   state->varLABEL1 = gtk_label_new("Mode");
+}
 
+static void generateUSERVAR(GTKwrapper* state){
   // !! USER VARIABLE CONTROL !!
   state->UVAR = g_new(GtkWidget*, 3);
   state->UVAR[0] = gtk_entry_new();
@@ -695,65 +737,45 @@ static void generateWindowSeparators(GTKwrapper *state)
 ///////////////////////////////////////////////////////////////////////////////////////
 //                            SWEEP MODE CONTROL                                     // 
 ///////////////////////////////////////////////////////////////////////////////////////
+
 static void destroySWEEPMODE(GTKwrapper* state){
-  /*  // DESTROY GPIB control  */
-  /* if ( (state->initBUTTON!=NULL) && (GTK_IS_WIDGET(state->initBUTTON))) */
-  /*   gtk_widget_destroy (state->initBUTTON); */
-  /* if ( (state->measBUTTON!=NULL) && (GTK_IS_WIDGET(state->measBUTTON))) */
-  /*   gtk_widget_destroy (state->measBUTTON); */
-  /* if ( (state->gpibBUTTON!=NULL) && (GTK_IS_WIDGET(state->gpibBUTTON))) */
-  /*   gtk_widget_destroy (state->gpibBUTTON); */
-  /* // DESTROY SMU control */
-  /* if ( (state->smuBUTTON!=NULL) && (GTK_IS_WIDGET(state->smuBUTTON))) */
-  /*   gtk_widget_destroy (state->smuBUTTON); */
-  /* if ( (state->disBUTTON!=NULL) && (GTK_IS_WIDGET(state->disBUTTON))) */
-  /*   gtk_widget_destroy (state->disBUTTON); */
-  /* if ( (state->initBUTTON!=NULL) && (GTK_IS_WIDGET(state->smuLABEL1))) */
-  /*   gtk_widget_destroy (state->smuLABEL1); */
-  /* if ( (state->initBUTTON!=NULL) && (GTK_IS_WIDGET(state->smuLABEL2))) */
-  /*   gtk_widget_destroy (state->smuLABEL2); */
-  /* if ( (state->initBUTTON!=NULL) && (GTK_IS_WIDGET(state->smuLABEL3))) */
-  /*   gtk_widget_destroy (state->smuLABEL3); */
-  /* if ( (state->initBUTTON!=NULL) && (GTK_IS_WIDGET(state->smuLABEL4))) */
-  /*   gtk_widget_destroy (state->smuLABEL4); */
-  /* if ( (state->initBUTTON!=NULL) && (GTK_IS_WIDGET(state->smuLABEL5))) */
-  /*   gtk_widget_destroy (state->smuLABEL5); */
-  /* if ( (state->initBUTTON!=NULL) && (GTK_IS_WIDGET(state->smuLABEL6))) */
-  /*   gtk_widget_destroy (state->smuLABEL6); */
-  /* int i = 0; */
-  /* for (i=0; i<7; i++){ */
-  /*   if ( (state->initBUTTON!=NULL) && (GTK_IS_WIDGET(state->SMU[i]))) */
-  /*     gtk_widget_destroy (state->SMU[i]); */
-  /* } */
-  // DESTROY VAR control 
-
-
-
-
-
-
-
-
-
-  
+  // DESTROY LABEL 
+  if ( (state->MODELABEL!=NULL) && (GTK_IS_WIDGET(state->MODELABEL)))
+    gtk_widget_destroy (state->MODELABEL);
+}
+static void destroySAMPLINGMODE(GTKwrapper* state){
+  // DESTROY LABEL 
+  if ( (state->MODELABEL!=NULL) && (GTK_IS_WIDGET(state->MODELABEL)))
+    gtk_widget_destroy (state->MODELABEL);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////
+//                            SWEEP MODE CONTROL                                     // 
+///////////////////////////////////////////////////////////////////////////////////////
 static void generateSWEEPMODE (GSimpleAction *action, GVariant*parameter,  void* gui_state)
 {  
   GTKwrapper* _state = (GTKwrapper*)malloc(sizeof(GTKwrapper*));
   _state = gui_state; 
   _setSweepMode(gpibHANDLE);
-  if (_state->MODE != 1){
-    _state->MODE = 1;
+
+  // All things common to both modes go in these
+  if (!(_state->MODE)){
     generateINIT(_state);
     generateSMU(_state);
-    generateVAR(_state);
-    generateListControl(_state);
+    generateUSERVAR(_state);
     generateSaveControl(_state);
     generateWindowSeparators(_state);
   }
 
-  gtk_widget_show_all(_state->window); 
+  if (_state->MODE != 1){
+    _state->MODE = 1;
+    destroySWEEPMODE(_state);
+    generateMODELABEL(_state,"SWEEP MODE CONTROL");
+    generateVAR(_state);
+    generateListControl(_state);
+  }
+
+  gtk_widget_show_all(GTK_WIDGET(_state->window)); 
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -764,15 +786,28 @@ static void generateSAMPLINGMODE (GSimpleAction *action,GVariant*parameter, void
   GTKwrapper* _state = (GTKwrapper*)malloc(sizeof(GTKwrapper*));
   _state = gui_state; 
   _setSamplingMode(gpibHANDLE);
-  if (_state->MODE != 2){
-    destroySWEEPMODE(_state);
+  
+  // All things common to both modes go in these
+  if (!(_state->MODE)){
     generateINIT(_state);
     generateSMU(_state);
+    generateUSERVAR(_state);
+    generateSaveControl(_state);
+    generateWindowSeparators(_state);
   }
-  _state->MODE = 2;
-  gtk_widget_show_all(_state->window); 
+
+  if (_state->MODE != 2){
+    _state->MODE = 2;
+    destroySAMPLINGMODE(_state);
+    generateMODELABEL(_state,"SAMPLING MODE CONTROL");
+  }
+  gtk_widget_show_all(GTK_WIDGET(_state->window)); 
 }
 
+
+/////////////////////////////////////////////////////////////////////////
+//                    APPLICATION GENERATION                           //
+/////////////////////////////////////////////////////////////////////////
 static void quit (GSimpleAction *action, GVariant *parameter, void* gui_state)
 {
   GTKwrapper* _state = (GTKwrapper*)malloc(sizeof(GTKwrapper));
@@ -782,6 +817,7 @@ static void quit (GSimpleAction *action, GVariant *parameter, void* gui_state)
 
 static void startup (GtkApplication* app, GTKwrapper* state)
 {
+  state->MODE = 0;
   static const GActionEntry actions[] = {
     {"sweepmode",  generateSWEEPMODE},
     {"samplingmode", generateSAMPLINGMODE},
@@ -802,20 +838,36 @@ static void startup (GtkApplication* app, GTKwrapper* state)
   g_object_unref (menu);
 }
 
+static gboolean draw_cb(GtkWidget *widget, cairo_t *cr, void* gui_state)
+{ 
+  cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
+  cairo_set_source_rgba(cr, 0.85, 0.85, 0.85, 1.0);
+  cairo_paint (cr);
+}
+
 static void activate (GtkApplication *app, GTKwrapper* state)
 {
   state->NUMBER = 1;
-  state->window = gtk_application_window_new (app);
+  state->window = (GtkWidget*)gtk_application_window_new (app);
   gtk_window_set_application (GTK_WINDOW (state->window), GTK_APPLICATION (app));
   gtk_window_set_default_size(GTK_WINDOW(state->window), WIDTH, HEIGHT);
   gtk_window_set_title (GTK_WINDOW (state->window), "HP4156B Control");
-  gtk_widget_show_all (GTK_WIDGET (state->window));
+  gtk_window_set_position(GTK_WINDOW(state->window), GTK_WIN_POS_CENTER);
+  gtk_widget_set_app_paintable(state->window, TRUE);
+  gtk_window_set_decorated(GTK_WINDOW(state->window), TRUE);
+  gtk_widget_set_opacity(GTK_WIDGET(state->window),0.9);
 
   state->fixed = gtk_fixed_new();
-  gtk_container_add(GTK_CONTAINER(state->window), state->fixed); 
-  state->MODE = 0;
+  gtk_widget_set_size_request (state->fixed, WIDTH, HEIGHT);
+  gtk_container_add(GTK_CONTAINER(state->window), state->fixed);
+
+  g_signal_connect(G_OBJECT(state->window), "draw", G_CALLBACK(draw_cb), NULL);
+  gtk_widget_show_all (GTK_WIDGET(state->window));
 }
 
+///////////////////////////////////////////////////////////////////////////
+//                    ------- MAIN LOOP -------                          //
+///////////////////////////////////////////////////////////////////////////
 int main (int argc, char **argv)
 {
   GTKwrapper* state = (GTKwrapper*)malloc(sizeof(GTKwrapper));

@@ -41,7 +41,6 @@ int setSMU(int ud, const char *vars[])
       _write(ud,strcat(cmd4,vars[4]));
 
   }
-   
   if (vars[5] && vars[6]){
     char cmd5[32] = "PAGE:MEAS:CONS:";
     strcat(cmd5,vars[0]);
@@ -106,8 +105,6 @@ int setSweepVAR(int ud, const char *vars[])
     _write(ud, strcat(cmd3, vars[3]));
 
   }
-
-
   if (strncmp(vars[1],"LIN",3) == 0)
   {
     // Step
@@ -116,7 +113,6 @@ int setSweepVAR(int ud, const char *vars[])
     strcat(cmd4,"STEP ");
     _write(ud, strcat(cmd4, vars[4]));
   }
-    
   // Compliance
   char cmd5[32];
   strcpy(cmd5,cmd);
@@ -262,7 +258,6 @@ int writeToFile(char *filename, node_t *listVARS, char **DATA, int size){
   // Calculate the total number of data points
   int k;
   int npoints = count_list(DATALIST[0]);
-
   
   // Actually write the data
   j = 0;
@@ -293,9 +288,17 @@ int writeToFile(char *filename, node_t *listVARS, char **DATA, int size){
   return 0;
 }
 
-int savedata(int ud, char* filename, node_t *listVARS, int buffersize){
+int setUserFunction(int ud, const char* data[]){
+  char cmd[32] = ":PAGE:CHAN:UFUN:DEF ";
+  strcat(cmd,data[0]);
+  strcat(cmd,",");
+  strcat(cmd,data[1]);
+  strcat(cmd,",");
+  strcat(cmd,data[2]);
+  _write(ud, cmd);
+}
 
-  
+int savedata(int ud, char* filename, node_t *listVARS, int buffersize){
 
   int i = 0;
   // DATA[i] needs to be read/write so it must 
