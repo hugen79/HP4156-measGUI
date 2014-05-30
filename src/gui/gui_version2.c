@@ -151,10 +151,8 @@ static void generateMODELABEL(GTKwrapper* state, char* str){
   char *markup;
   markup = g_markup_printf_escaped (format, str);
   gtk_label_set_markup (GTK_LABEL (state->MODELABEL),markup);
-   //gtk_label_set_text (GTK_LABEL (state->MODELABEL),str); 
   g_free (markup);
 }
-
 
 ///////////////////////////////////////////
 // INITIALIZATION AND MEASURE GENERATION //
@@ -610,7 +608,6 @@ static void LISTADD(GtkWidget* listADD, GTKwrapper* state){
   char* var;
   var = (char*)gtk_combo_box_text_get_active_text((GtkComboBoxText*)state->listCOMBO);
   if (var != NULL){
-
     add_to_list_unique( state->listVARS,strdup(var));
     strcpy(state->listSTR,(char*)print_list_to_string(state->listVARS));
     gtk_entry_set_text((GtkEntry*)state->listENTRY,state->listSTR);
@@ -799,18 +796,46 @@ static void generateWindowSeparators(GTKwrapper *state)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
-//                            SWEEP MODE CONTROL                                     // 
+//                     SWEEP AND SAMPLING MODE DESTRUCTORS                           // 
 ///////////////////////////////////////////////////////////////////////////////////////
-
 static void destroySWEEPMODE(GTKwrapper* state){
   // DESTROY LABEL 
   if ( (state->MODELABEL!=NULL) && (GTK_IS_WIDGET(state->MODELABEL)))
     gtk_widget_destroy (state->MODELABEL);
+  if ( (state->varBUTTON !=NULL) && (GTK_IS_WIDGET(state->varBUTTON)))
+    gtk_widget_destroy (state->varBUTTON);
+  if ( (state->varLABEL1 !=NULL) && (GTK_IS_WIDGET(state->varLABEL1)))
+    gtk_widget_destroy (state->varLABEL1);
+  if ( (state->varLABEL2 !=NULL) && (GTK_IS_WIDGET(state->varLABEL2)))
+    gtk_widget_destroy (state->varLABEL2);
+  if ( (state->varLABEL3 !=NULL) && (GTK_IS_WIDGET(state->varLABEL3)))
+    gtk_widget_destroy (state->varLABEL3);
+  if ( (state->varLABEL4 !=NULL) && (GTK_IS_WIDGET(state->varLABEL4)))
+    gtk_widget_destroy (state->varLABEL4);
+  if ( (state->varLABEL5 !=NULL) && (GTK_IS_WIDGET(state->varLABEL5)))
+    gtk_widget_destroy (state->varLABEL5);
+  int i; 
+  for (i = 0; i< 6; i++){
+    if ( (state->VAR[i] !=NULL) && (GTK_IS_WIDGET(state->VAR[i])))
+      gtk_widget_destroy (state->VAR[i]);
+  }
+  gtk_combo_box_text_remove_all(GTK_COMBO_BOX_TEXT (state->listCOMBO));
+  destroy_list(state->comboVARS);
+  destroy_list(state->listVARS);
+  state->comboVARS = initialize_list();
+  state->listVARS = initialize_list();
 }
+
 static void destroySAMPLINGMODE(GTKwrapper* state){
   // DESTROY LABEL 
   if ( (state->MODELABEL!=NULL) && (GTK_IS_WIDGET(state->MODELABEL)))
     gtk_widget_destroy (state->MODELABEL);
+
+  gtk_combo_box_text_remove_all(GTK_COMBO_BOX_TEXT (state->listCOMBO));
+  destroy_list(state->comboVARS);
+  destroy_list(state->listVARS);
+  state->comboVARS = initialize_list();
+  state->listVARS = initialize_list();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -832,8 +857,8 @@ static void generateSWEEPMODE (GSimpleAction *action, GVariant*parameter,  void*
   }
 
   if (_state->MODE != 1){
+    destroySAMPLINGMODE(_state);
     _state->MODE = 1;
-    destroySWEEPMODE(_state);
     generateMODELABEL(_state,"SWEEP MODE CONTROL");
     generateVAR(_state);
     generateListControl(_state);
@@ -858,11 +883,12 @@ static void generateSAMPLINGMODE (GSimpleAction *action,GVariant*parameter, void
     generateUSERVAR(_state);
     generateSaveControl(_state);
     generateWindowSeparators(_state);
+    _state->MODE = 2;
   }
 
   if (_state->MODE != 2){
     _state->MODE = 2;
-    destroySAMPLINGMODE(_state);
+    destroySWEEPMODE(_state);
     generateMODELABEL(_state,"SAMPLING MODE CONTROL");
   }
   gtk_widget_show_all(GTK_WIDGET(_state->window)); 
