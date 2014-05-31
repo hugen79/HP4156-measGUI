@@ -153,8 +153,22 @@ int setSamplingSMU(int ud, const char *vars[]){
   //FUNC
   char cmd4[32] = ":PAGE:CHAN:";
   strcat(cmd4,vars[0]);
-  strcat(cmd4,":FUNC ");
-  _write(ud,strcat(cmd4,vars[4]));
+  strcat(cmd4,":FUNC CONS");
+  _write(ud,cmd4);
+
+  if ((vars[4] != NULL) && (vars[5]!=NULL)){
+    char cmd5[32] = ":PAGE:MEAS:SAMP:CONS:";
+    strcat(cmd5,vars[0]);
+    strcat(cmd5," ");
+    strcat(cmd5,vars[4]);
+    _write(ud,cmd5);
+    
+    char cmd6[32] = ":PAGE:MEAS:SAMP:CONS:SMU1 ";
+    strcat(cmd6,vars[0]);
+    strcat(cmd6,":COMP ");
+    strcat(cmd6,vars[4]);
+    _write(ud,cmd6);
+  }
 }
 
 ////////////////////////////////////

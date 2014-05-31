@@ -154,7 +154,13 @@ static void generateMODELABEL(GTKwrapper* state, char* str){
   gtk_label_set_use_markup (GTK_LABEL (state->MODELABEL),TRUE);
   gtk_fixed_put(GTK_FIXED(state->fixed), state->MODELABEL,(int)X4-80,  (int)Y1+10);
 
-  const char *format = "<span size=\"16000\">%s</span>";
+  const char* format;
+  if (!strcmp(str,"SWEEP MODE CONTROL")){
+    format = "<span font=\"16.0\" weight=\"bold\" foreground=\"#77B9F2\">%s</span>";
+  }
+  else{
+    format = "<span font=\"16.0\" weight=\"bold\" foreground=\"#F78181\">%s</span>";
+  }
   char *markup;
   markup = g_markup_printf_escaped (format, str);
   gtk_label_set_markup (GTK_LABEL (state->MODELABEL),markup);
@@ -599,6 +605,64 @@ static void generateWindowSeparators(GTKwrapper *state)
 ///////////////////////////////////////////////////////////////////////////////////////
 //                     SAMPLING MODE FUNCTIONS AND CALLBACKS                         // 
 ///////////////////////////////////////////////////////////////////////////////////////
+static int SETSMU_SM(GtkWidget *smuBUTTON,  GTKwrapper *state)
+{
+  // read everything
+  char* _smu    = (char*)gtk_combo_box_text_get_active_text((GtkComboBoxText*)state->SMU_SM[0]);
+  char* vtmp    = (char*)gtk_entry_get_text((GtkEntry*)state->SMU_SM[1]); 
+  char* itmp    = (char*)gtk_entry_get_text((GtkEntry*)state->SMU_SM[2]); 
+  char* mode    = (char*)gtk_combo_box_text_get_active_text((GtkComboBoxText*)state->SMU_SM[3]); 
+  char* cons    = (char*)gtk_entry_get_text((GtkEntry*)state->SMU_SM[4]);
+  char* comp    = (char*)gtk_entry_get_text((GtkEntry*)state->SMU_SM[5]);      
+ 
+  gtk_combo_box_text_remove_all(GTK_COMBO_BOX_TEXT (state->listCOMBO));   
+  add_to_list_unique(state->comboVARS,strdup(vtmp));
+  
+  if (strlen(itmp) < 8){
+    add_to_list_unique(state->comboVARS,strdup(itmp));
+  }
+  while (state->comboVARS->next != NULL){
+    gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (state->listCOMBO),NULL,state->comboVARS->data);
+    state->comboVARS = state->comboVARS->next;
+    gtk_combo_box_set_active (GTK_COMBO_BOX (state->listCOMBO), 0);
+  }
+  // rewind the pointer
+  state->comboVARS = state->comboVARS->head;
+
+  // format vname and iname for the gpib
+  char* vname;
+  char* iname;
+
+  vname = stringify(vtmp);
+  if (strlen(itmp) < 8){
+    iname = stringify(itmp);
+  }
+  else{
+    iname = "__NOTHING__";
+  }
+  
+  // Declare a variable to hold out data
+  const char* data[7];
+  // Black magick bitwise operations for mode selection
+  if (! ((int)strcmp("V", mode) & (int)strcmp(mode,"I"))){
+    data[0] = _smu;
+    data[1] = vname; 
+    data[2] = iname;
+    data[3] = mode; 
+    data[4] = cons;
+    data[5] = comp;
+    setSamplingSMU(gpibHANDLE, data);
+  }
+  else {
+    data[0] = _smu;
+    data[1] = vname; 
+    data[2] = iname;
+    data[3] = mode; 
+    data[5] = NULL;
+    data[6] = NULL;
+    setSamplingSMU(gpibHANDLE, data);
+  }
+}
 
 // Makes the INAME field uneditable if you have VSU/VMU/GND selected
 static void inameChanger_SM(GtkWidget *widget, GTKwrapper* state){
@@ -732,9 +796,16 @@ static void generateSMU_SM(GTKwrapper* state){
   // Callbacks
   g_signal_connect(state->SMU_SM[0],"changed", G_CALLBACK(inameChanger_SM), state);
   g_signal_connect(state->SMU_SM[3],"changed", G_CALLBACK(smuChanger_SM), state);
-
+  g_signal_connect(state->smuBUTTON_SM,"clicked", G_CALLBACK(SETSMU_SM), state);
 }
 
+
+static void generateVAR_SM(GTKwrapper* state){
+
+
+
+
+}
 
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -976,6 +1047,7 @@ static void generateSaveControl(GTKwrapper *state)
 ///////////////////////////////////////////////////////////////////////////////////////
 static void destroySWEEPMODE(GTKwrapper* state){
 
+  // Protection ... so we do not try to destroy on startup
   if (state->MODE == 0){
     return;
   }
@@ -1032,10 +1104,10 @@ static void destroySWEEPMODE(GTKwrapper* state){
 
 static void destroySAMPLINGMODE(GTKwrapper* state){
 
+  // Protection ... so we do not try to destroy on startup
   if (state->MODE == 0){
     return;
   }
-
 
   // DESTROY LABEL 
   if ( (state->MODELABEL!=NULL) && (GTK_IS_WIDGET(state->MODELABEL)))
@@ -1110,7 +1182,6 @@ static void generateSAMPLINGMODE (GSimpleAction *action,GVariant*parameter, void
     generateListControl(_state);
     generateSaveControl(_state);
   }
-
   if (_state->MODE != 2){
     destroySWEEPMODE(_state);
     _state->MODE = 2;
@@ -1119,7 +1190,6 @@ static void generateSAMPLINGMODE (GSimpleAction *action,GVariant*parameter, void
   }
   gtk_widget_show_all(GTK_WIDGET(_state->window)); 
 }
-
 
 /////////////////////////////////////////////////////////////////////////
 //                    APPLICATION GENERATION                           //
