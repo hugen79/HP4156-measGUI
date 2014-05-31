@@ -79,11 +79,18 @@ typedef struct{
   GtkWidget *varBUTTON;
   GtkWidget **varLABELS;
   GtkWidget **VAR;
+  // Separators and labels
+  GtkWidget **sepLABELS;
+  GtkWidget **SEP;
 
   ///////////////////////////
   // SAMPLING MODE WIDGETS //
   ///////////////////////////
-
+  // SMU control widgets
+  GtkWidget *smuBUTTON_SM; 
+  GtkWidget *disBUTTON_SM;  
+  GtkWidget **smuLABELS_SM;
+  GtkWidget **SMU_SM;
 
   //////////////////////////////
   // WIDGETS COMMON TO BOTH   //
@@ -235,7 +242,7 @@ static int SETSMU(GtkWidget *smuBUTTON,  GTKwrapper *state)
        data[4] = _var; 
        data[5] = cons;
        data[6] = comp;
-       setSMU(gpibHANDLE, data);
+       setSweepSMU(gpibHANDLE, data);
     }
     else {
       data[0] = _smu;
@@ -245,7 +252,7 @@ static int SETSMU(GtkWidget *smuBUTTON,  GTKwrapper *state)
       data[4] = _var; 
       data[5] = NULL;
       data[6] = NULL;
-      setSMU(gpibHANDLE, data);
+      setSweepSMU(gpibHANDLE, data);
     }
   }
   else {
@@ -256,7 +263,7 @@ static int SETSMU(GtkWidget *smuBUTTON,  GTKwrapper *state)
     data[4] = _var; 
     data[5] = NULL;
     data[6] = NULL;
-    setSMU(gpibHANDLE, data);
+    setSweepSMU(gpibHANDLE, data);
   }
 
 }
@@ -340,7 +347,7 @@ static void generateSMU(GTKwrapper* state){
   state->SMU       = g_new(GtkWidget*, 8);
   state->smuLABELS = g_new(GtkWidget*, 6); 
 
-  //GtkListStore *SMULIST = gtk_list_store_new(5, G_TYPE_STRING,G_TYPE_INT,G_TYPE_BOOLEAN);
+  // SMU selector 
   state->SMU[0] = gtk_combo_box_text_new();
   gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT(state->SMU[0]),NULL, "SMU1");
   gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT(state->SMU[0]),NULL, "SMU2");
@@ -465,18 +472,6 @@ static void varChanger(GtkWidget *widget, GTKwrapper* state){
     gtk_combo_box_set_active (GTK_COMBO_BOX (state->VAR[1]), 0);
   }
 }
-///////////////////////////////////////////////////////////////////////////////////////
-//                     SAMPLING MODE FUNCTIONS AND CALLBACKS                         // 
-///////////////////////////////////////////////////////////////////////////////////////
-
-
-
-
-
-
-///////////////////////////////////////////////////////////////////////////////////////
-//         FUNCTIONS AND CALLBACKS COMMON TO BOTH SWEEP AND SAMPLING MODE            // 
-///////////////////////////////////////////////////////////////////////////////////////
 static void modeChanger(GtkWidget *widget, GTKwrapper* state){
   char *tmp;
   tmp = (char*)gtk_combo_box_get_active((GtkComboBox*)state->VAR[1]);
@@ -489,35 +484,6 @@ static void modeChanger(GtkWidget *widget, GTKwrapper* state){
     gtk_editable_set_editable(GTK_EDITABLE(state->VAR[4]), TRUE);
   }
 }
-
-static void SETUVAR(GtkWidget* widget, GTKwrapper* state){
-  char* vname = (char*)gtk_entry_get_text((GtkEntry*)state->UVAR[0]);
-  char* vunit = (char*)gtk_entry_get_text((GtkEntry*)state->UVAR[1]);
-  char* vexpr = (char*)gtk_entry_get_text((GtkEntry*)state->UVAR[2]);
-
-  // Add to the varlist and regenerate the combobox
-  add_to_list_unique(state->comboVARS,strdup(vname));
-  gtk_combo_box_text_remove_all(GTK_COMBO_BOX_TEXT(state->listCOMBO));   
-  while (state->comboVARS->next != NULL){
-    gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (state->listCOMBO),NULL,state->comboVARS->data);
-    state->comboVARS = state->comboVARS->next;
-    gtk_combo_box_set_active (GTK_COMBO_BOX (state->listCOMBO), 0);
-  }
-  // rewind the pointer
-  state->comboVARS = state->comboVARS->head;
-
-  char* _vname;
-  char* _vunit;
-  char* _vexpr;
-
-  _vname = stringify(vname);
-  _vunit = stringify(vunit);
-  _vexpr = stringify(vexpr);
-  
-  const char *data[3] = {_vname, _vunit, _vexpr};
-  setUserFunction(gpibHANDLE, data);
-}
-
 /////////////////////////////////
 // VARIABLE CONTROL GENERATION //
 /////////////////////////////////
@@ -595,6 +561,211 @@ static void generateVAR(GTKwrapper* state){
   // label 
   state->varLABELS[4] = gtk_label_new("Compliance");
   gtk_fixed_put(GTK_FIXED(state->fixed), state->varLABELS[4], X6, (int)Y4-20);
+}
+
+
+////////////////////////
+// WINDOW SEPARATORS  //
+////////////////////////
+static void generateWindowSeparators(GTKwrapper *state)
+{
+  // Initialize our SMU control widgets and labels. 
+  state->SEP       = g_new(GtkWidget*, 3);
+  state->sepLABELS = g_new(GtkWidget*, 3); 
+
+  // Separator 0
+  state->SEP[0] = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
+  gtk_widget_set_size_request(state->SEP[0], 750, 2);
+  gtk_fixed_put(GTK_FIXED(state->fixed), state->SEP[0], BWIDTH, 80);
+  state->sepLABELS[0] = gtk_label_new("SMU Control");
+  gtk_fixed_put(GTK_FIXED(state->fixed), state->sepLABELS[0], X1, 74);
+  
+  // Separator 1
+  state->SEP[1] = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
+  gtk_widget_set_size_request(state->SEP[1], 750, 2);
+  gtk_fixed_put(GTK_FIXED(state->fixed), state->SEP[1], BWIDTH, 234);
+  state->sepLABELS[1] = gtk_label_new("VAR Control");
+  gtk_fixed_put(GTK_FIXED(state->fixed), state->sepLABELS[1], X1, 240);
+		
+  //Separator 2
+  state->SEP[2] = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
+  gtk_widget_set_size_request(state->SEP[2], 750, 2);
+  gtk_fixed_put(GTK_FIXED(state->fixed), state->SEP[2], BWIDTH, 404);
+  state->sepLABELS[2] = gtk_label_new("DATA Control");
+  gtk_fixed_put(GTK_FIXED(state->fixed), state->sepLABELS[2], X1, 410);
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////
+//                     SAMPLING MODE FUNCTIONS AND CALLBACKS                         // 
+///////////////////////////////////////////////////////////////////////////////////////
+
+// Makes the INAME field uneditable if you have VSU/VMU/GND selected
+static void inameChanger_SM(GtkWidget *widget, GTKwrapper* state){
+  int i = 0;
+  char *tmp0;
+  tmp0 = (char*)gtk_combo_box_text_get_active_text((GtkComboBoxText*)state->SMU_SM[0]);
+  
+  int activate = 0;
+  char* test[5] = {"VSU1","VSU2","VMU1","VMU2","GNDU"};
+
+  for (i = 0; i<5; i++){
+    if (!(strcmp(tmp0, test[i]))){
+      activate = 1;
+      break;
+    }
+  }
+
+  if (activate){
+    gtk_entry_set_text(GTK_ENTRY(state->SMU_SM[2]),"------------------");
+    gtk_editable_set_editable(GTK_EDITABLE(state->SMU_SM[2]), FALSE);
+  }
+  else{
+    gtk_entry_set_text(GTK_ENTRY(state->SMU_SM[2]), "");
+    gtk_editable_set_editable(GTK_EDITABLE(state->SMU_SM[2]), TRUE);
+  }
+}
+
+static void smuChanger_SM(GtkWidget *widget, GTKwrapper* state){
+
+  char *tmp1;
+  tmp1 = (char*)gtk_combo_box_text_get_active_text((GtkComboBoxText*)state->SMU_SM[3]);
+  
+  // If in common constant mode ... turn off everything
+  if(strcmp(tmp1,"COMM") != 0  ){
+    gtk_entry_set_text(GTK_ENTRY(state->SMU_SM[4]), "");
+    gtk_entry_set_text(GTK_ENTRY(state->SMU_SM[5]), "");
+    gtk_editable_set_editable(GTK_EDITABLE(state->SMU_SM[4]), TRUE);
+    gtk_editable_set_editable(GTK_EDITABLE(state->SMU_SM[5]), TRUE);
+  }
+  else {
+    gtk_entry_set_text(GTK_ENTRY(state->SMU_SM[4]), "------------------");
+    gtk_entry_set_text(GTK_ENTRY(state->SMU_SM[5]), "------------------");
+    gtk_editable_set_editable(GTK_EDITABLE(state->SMU_SM[4]), FALSE);
+    gtk_editable_set_editable(GTK_EDITABLE(state->SMU_SM[5]), FALSE);
+  }
+}
+
+static void generateSMU_SM(GTKwrapper* state){
+
+  state->smuBUTTON_SM = gtk_button_new_with_label("OK");
+  gtk_fixed_put(GTK_FIXED(state->fixed), state->smuBUTTON_SM, X5, Y3);
+  gtk_widget_set_size_request(state->smuBUTTON_SM, BWIDTH, BHEIGHT);
+
+  state->disBUTTON_SM = gtk_button_new_with_label("!DISABLE!");
+  gtk_fixed_put(GTK_FIXED(state->fixed), state->disBUTTON_SM, X6, Y3);
+  gtk_widget_set_size_request(state->disBUTTON_SM, BWIDTH, BHEIGHT);
+
+  /* // Initialize our SMU control widgets and labels.  */
+  state->SMU_SM       = g_new(GtkWidget*, 6);
+  state->smuLABELS_SM = g_new(GtkWidget*, 5);
+  // SMU selector
+  state->SMU_SM[0] = gtk_combo_box_text_new();
+  gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT(state->SMU_SM[0]),NULL, "SMU1");
+  gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT(state->SMU_SM[0]),NULL, "SMU2");
+  gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT(state->SMU_SM[0]),NULL, "SMU3");
+  gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT(state->SMU_SM[0]),NULL, "SMU4");
+  gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT(state->SMU_SM[0]),NULL, "SMU5");
+  gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT(state->SMU_SM[0]),NULL, "VSU1");
+  gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT(state->SMU_SM[0]),NULL, "VSU2");
+  gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT(state->SMU_SM[0]),NULL, "VMU1");
+  gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT(state->SMU_SM[0]),NULL, "VMU2");
+  gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT(state->SMU_SM[0]),NULL, "GNDU");
+  gtk_combo_box_set_active(GTK_COMBO_BOX(state->SMU_SM[0]),0);
+  gtk_widget_set_size_request(state->SMU_SM[0], BWIDTH, BHEIGHT);
+  gtk_fixed_put(GTK_FIXED(state->fixed), state->SMU_SM[0], X1, Y2);
+ 
+   // VNAME 
+  state->SMU_SM[1] = gtk_entry_new();
+  gtk_editable_set_editable(GTK_EDITABLE(state->SMU_SM[1]), TRUE);
+  gtk_entry_set_width_chars((GtkEntry*)state->SMU_SM[1],14);
+  gtk_widget_set_size_request(state->SMU_SM[1], BWIDTH, BHEIGHT);
+  gtk_entry_set_text(GTK_ENTRY(state->SMU_SM[1]),"");
+  gtk_fixed_put(GTK_FIXED(state->fixed), state->SMU_SM[1], X2, Y2);
+  // label 
+  state->smuLABELS_SM[0] = gtk_label_new("(V) name");
+  gtk_fixed_put(GTK_FIXED(state->fixed), state->smuLABELS_SM[0],X2,(int)Y2-20);
+    
+  // INAME
+  state->SMU_SM[2] = gtk_entry_new();
+  gtk_editable_set_editable(GTK_EDITABLE(state->SMU_SM[2]), TRUE);
+  gtk_entry_set_width_chars((GtkEntry*)state->SMU_SM[2],14);
+  gtk_widget_set_size_request(state->SMU_SM[2], BWIDTH, BHEIGHT);
+  gtk_fixed_put(GTK_FIXED(state->fixed), state->SMU_SM[2], X3, Y2);
+  gtk_entry_set_text(GTK_ENTRY(state->SMU_SM[2]),"");
+  // label 
+  state->smuLABELS_SM[1] = gtk_label_new("(I) name");
+  gtk_fixed_put(GTK_FIXED(state->fixed), state->smuLABELS_SM[1], X3, (int)Y2-20);
+
+  // MODE
+  state->SMU_SM[3] = gtk_combo_box_text_new ();
+  gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (state->SMU_SM[3]),NULL, "V");
+  gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (state->SMU_SM[3]),NULL, "I");
+  gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (state->SMU_SM[3]),NULL, "COMM");
+  gtk_combo_box_set_active (GTK_COMBO_BOX (state->SMU_SM[3]), 0);
+  gtk_widget_set_size_request(state->SMU_SM[3], BWIDTH, BHEIGHT);
+  gtk_fixed_put(GTK_FIXED(state->fixed), state->SMU_SM[3], X4, Y2);
+  // label 
+  state->smuLABELS_SM[2] = gtk_label_new("Mode");
+  gtk_fixed_put(GTK_FIXED(state->fixed), state->smuLABELS_SM[2], X4, (int)Y2-20);
+
+  // CONST VALUE
+  state->SMU_SM[4] = gtk_entry_new();
+  gtk_editable_set_editable(GTK_EDITABLE(state->SMU_SM[4]), TRUE);
+  gtk_entry_set_width_chars((GtkEntry*)state->SMU_SM[4],14);
+  gtk_widget_set_size_request(state->SMU_SM[4], BWIDTH, BHEIGHT);
+  gtk_fixed_put(GTK_FIXED(state->fixed), state->SMU_SM[4], X5, Y2);
+  // label
+  state->smuLABELS_SM[3] = gtk_label_new("Const Value");
+  gtk_fixed_put(GTK_FIXED(state->fixed), state->smuLABELS_SM[3], X5, (int)Y2-20);
+
+  // CONST COMP
+  state->SMU_SM[5] = gtk_entry_new();
+  gtk_editable_set_editable(GTK_EDITABLE(state->SMU_SM[5]), TRUE);
+  gtk_entry_set_width_chars((GtkEntry*)state->SMU_SM[5],14);
+  gtk_widget_set_size_request(state->SMU_SM[5], BWIDTH, BHEIGHT);
+  gtk_fixed_put(GTK_FIXED(state->fixed), state->SMU_SM[5], X6, Y2);
+  // label
+  state->smuLABELS_SM[4] = gtk_label_new("Const Compliance");
+  gtk_fixed_put(GTK_FIXED(state->fixed), state->smuLABELS_SM[4], X6, (int)Y2-20);
+
+  // Callbacks
+  g_signal_connect(state->SMU_SM[0],"changed", G_CALLBACK(inameChanger_SM), state);
+  g_signal_connect(state->SMU_SM[3],"changed", G_CALLBACK(smuChanger_SM), state);
+
+}
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////
+//         FUNCTIONS AND CALLBACKS COMMON TO BOTH SWEEP AND SAMPLING MODE            // 
+///////////////////////////////////////////////////////////////////////////////////////
+static void SETUVAR(GtkWidget* widget, GTKwrapper* state){
+  char* vname = (char*)gtk_entry_get_text((GtkEntry*)state->UVAR[0]);
+  char* vunit = (char*)gtk_entry_get_text((GtkEntry*)state->UVAR[1]);
+  char* vexpr = (char*)gtk_entry_get_text((GtkEntry*)state->UVAR[2]);
+
+  // Add to the varlist and regenerate the combobox
+  add_to_list_unique(state->comboVARS,strdup(vname));
+  gtk_combo_box_text_remove_all(GTK_COMBO_BOX_TEXT(state->listCOMBO));   
+  while (state->comboVARS->next != NULL){
+    gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (state->listCOMBO),NULL,state->comboVARS->data);
+    state->comboVARS = state->comboVARS->next;
+    gtk_combo_box_set_active (GTK_COMBO_BOX (state->listCOMBO), 0);
+  }
+  // rewind the pointer
+  state->comboVARS = state->comboVARS->head;
+
+  char* _vname;
+  char* _vunit;
+  char* _vexpr;
+
+  _vname = stringify(vname);
+  _vunit = stringify(vunit);
+  _vexpr = stringify(vexpr);
+  
+  const char *data[3] = {_vname, _vunit, _vexpr};
+  setUserFunction(gpibHANDLE, data);
 }
 static void generateUSERVAR(GTKwrapper* state){
   // !! USER VARIABLE CONTROL !!
@@ -675,6 +846,9 @@ static void LISTALL(GtkWidget* listREMALL, GTKwrapper* state){
 /////////////////////////////
 static void generateListControl(GTKwrapper *state){
 
+  state->comboVARS = initialize_list();
+  state->listVARS  = initialize_list();
+
   state->listCOMBO = gtk_combo_box_text_new();
   gtk_combo_box_set_active(GTK_COMBO_BOX(state->listCOMBO),0);
   gtk_widget_set_size_request(state->listCOMBO, BWIDTH, BHEIGHT);
@@ -683,7 +857,6 @@ static void generateListControl(GTKwrapper *state){
   state->listENTRY = gtk_entry_new();
   gtk_editable_set_editable(GTK_EDITABLE(state->listENTRY), FALSE);
   gtk_entry_set_width_chars((GtkEntry*)state->listENTRY,14);
-  gtk_widget_set_size_request(state->VAR[5], BWIDTH, BHEIGHT);
   gtk_fixed_put(GTK_FIXED(state->fixed), state->listENTRY,X4,Y6);
   gtk_widget_set_size_request(state->listENTRY, BWIDTH, BHEIGHT);
 
@@ -798,44 +971,14 @@ static void generateSaveControl(GTKwrapper *state)
   gtk_widget_set_size_request(state->saveDATA, BWIDTH, BHEIGHT);
 }
 
-
-////////////////////////
-// WINDOW SEPARATORS  //
-////////////////////////
-static void generateWindowSeparators(GTKwrapper *state)
-{
-
-  GtkWidget* label1; 
-  GtkWidget* label2; 
-  GtkWidget* label3; 
-
-  GtkWidget* separator1; 
-  GtkWidget* separator2;
-  GtkWidget* separator3;
-
-  label1 = gtk_label_new("SMU Control");
-  separator1 = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
-  gtk_widget_set_size_request(separator1, 750, 2);
-  gtk_fixed_put(GTK_FIXED(state->fixed), label1, X1, 74);
-  gtk_fixed_put(GTK_FIXED(state->fixed), separator1, BWIDTH, 80);
-
-  label2 = gtk_label_new("VAR Control");
-  separator2 = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
-  gtk_widget_set_size_request(separator2,750, 2);
-  gtk_fixed_put(GTK_FIXED(state->fixed), label2, X1, 234);
-  gtk_fixed_put(GTK_FIXED(state->fixed), separator2, BWIDTH, 240);
-
-  label3 = gtk_label_new("DATA Control");
-  separator3 = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
-  gtk_widget_set_size_request(separator3, 750, 2);
-  gtk_fixed_put(GTK_FIXED(state->fixed), label3, X1, 404);
-  gtk_fixed_put(GTK_FIXED(state->fixed), separator3, BWIDTH,410);
-}
-
 ///////////////////////////////////////////////////////////////////////////////////////
 //                     SWEEP AND SAMPLING MODE DESTRUCTORS                           // 
 ///////////////////////////////////////////////////////////////////////////////////////
 static void destroySWEEPMODE(GTKwrapper* state){
+
+  if (state->MODE == 0){
+    return;
+  }
 
   // DESTROY STATE LABEL 
   if ( (state->MODELABEL!=NULL) && (GTK_IS_WIDGET(state->MODELABEL)))
@@ -856,6 +999,7 @@ static void destroySWEEPMODE(GTKwrapper* state){
     if ( (state->smuLABELS[i] !=NULL) && (GTK_IS_WIDGET(state->smuLABELS[i])))
       gtk_widget_destroy (state->smuLABELS[i]);
   }
+
   // Destroy Variable Control ... we do not need this in sampling mode
   if ( (state->varBUTTON !=NULL) && (GTK_IS_WIDGET(state->varBUTTON)))
     gtk_widget_destroy (state->varBUTTON);
@@ -868,6 +1012,16 @@ static void destroySWEEPMODE(GTKwrapper* state){
       gtk_widget_destroy (state->VAR[i]);
   }
 
+  // Destroy Separators 
+  for (i = 0; i< 3; i++){
+    if ( (state->sepLABELS[i] !=NULL) && (GTK_IS_WIDGET(state->sepLABELS[i])))
+      gtk_widget_destroy (state->sepLABELS[i]);
+  }
+  for (i = 0; i< 3; i++){
+    if ( (state->SEP[i] !=NULL) && (GTK_IS_WIDGET(state->SEP[i])))
+      gtk_widget_destroy (state->SEP[i]);
+  }
+
   // Destroy and recreate the list variables 
   gtk_combo_box_text_remove_all(GTK_COMBO_BOX_TEXT (state->listCOMBO));
   destroy_list(state->comboVARS);
@@ -877,9 +1031,31 @@ static void destroySWEEPMODE(GTKwrapper* state){
 }
 
 static void destroySAMPLINGMODE(GTKwrapper* state){
+
+  if (state->MODE == 0){
+    return;
+  }
+
+
   // DESTROY LABEL 
   if ( (state->MODELABEL!=NULL) && (GTK_IS_WIDGET(state->MODELABEL)))
     gtk_widget_destroy (state->MODELABEL);
+  
+  // Destroy SMU_SM control ... as before
+  int i; 
+  if ( (state->smuBUTTON_SM !=NULL) && (GTK_IS_WIDGET(state->smuBUTTON_SM)))
+    gtk_widget_destroy (state->smuBUTTON_SM);
+  if ( (state->disBUTTON_SM !=NULL) && (GTK_IS_WIDGET(state->disBUTTON_SM)))
+    gtk_widget_destroy (state->disBUTTON_SM);
+
+  for (i = 0; i < 6; i++){
+    if ( (state->SMU_SM[i] !=NULL) && (GTK_IS_WIDGET(state->SMU_SM[i])))
+      gtk_widget_destroy (state->SMU_SM[i]);
+  }
+  for (i = 0; i < 5; i++){
+    if ( (state->smuLABELS_SM[i] !=NULL) && (GTK_IS_WIDGET(state->smuLABELS_SM[i])))
+      gtk_widget_destroy (state->smuLABELS_SM[i]);
+  }
 
   gtk_combo_box_text_remove_all(GTK_COMBO_BOX_TEXT (state->listCOMBO));
   destroy_list(state->comboVARS);
@@ -902,6 +1078,7 @@ static void generateSWEEPMODE (GSimpleAction *action, GVariant*parameter,  void*
     generateINIT(_state);
     generateUSERVAR(_state);
     generateSaveControl(_state);
+    generateListControl(_state);
     generateWindowSeparators(_state);
   }
 
@@ -911,7 +1088,7 @@ static void generateSWEEPMODE (GSimpleAction *action, GVariant*parameter,  void*
     generateMODELABEL(_state,"SWEEP MODE CONTROL");
     generateSMU(_state);
     generateVAR(_state);
-    generateListControl(_state);
+
   }
 
   gtk_widget_show_all(GTK_WIDGET(_state->window)); 
@@ -929,17 +1106,16 @@ static void generateSAMPLINGMODE (GSimpleAction *action,GVariant*parameter, void
   // All things common to both modes go in these
   if (!(_state->MODE)){
     generateINIT(_state);
-    generateSMU(_state);
     generateUSERVAR(_state);
+    generateListControl(_state);
     generateSaveControl(_state);
-    generateWindowSeparators(_state);
-    _state->MODE = 2;
   }
 
   if (_state->MODE != 2){
-    _state->MODE = 2;
     destroySWEEPMODE(_state);
+    _state->MODE = 2;
     generateMODELABEL(_state,"SAMPLING MODE CONTROL");
+    generateSMU_SM(_state);
   }
   gtk_widget_show_all(GTK_WIDGET(_state->window)); 
 }
@@ -1014,10 +1190,6 @@ int main (int argc, char **argv)
   state->filename   = malloc(100);
   state->listSTR    = malloc(100);
   state->increment  = 0;
-
-  state->comboVARS = initialize_list();
-  state->listVARS  = initialize_list();
-
 
   state->app = gtk_application_new ("org.gtk.example",G_APPLICATION_FLAGS_NONE);
   g_signal_connect (state->app, "startup", G_CALLBACK (startup), state);
