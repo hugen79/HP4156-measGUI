@@ -276,93 +276,16 @@ int setUserFunction(int ud, const char* data[]){
   _write(ud, cmd);
 }
 
-int writeToFile(char *filename, node_t *listVARS, char **DATA, int buffersize){ 
-  
-  // Get a file pointer
-  FILE *file; 
-  file = fopen(filename,"w+"); 
- 
-  int size;
-  size = count_list(listVARS);
-
-  /* // WRITE HEADER TO FILE */
-  char *header = malloc(sizeof(header));
-  strcpy(header,""); 
-
- // while (listVARS->next != NULL){
-  while (listVARS->next){
-    strcat(header, strdup(listVARS->data));
-    strcat(header, "\t\t");
-    listVARS=listVARS->next;
-  }
-  strcat(header,"\n");
-  fprintf(file, remove_char(header,'\''));
-
-  node_t **DATALIST;
-  DATALIST = (node_t**)malloc(8*sizeof(node_t*));
-
-  int j;
-  for (j = 0; j<8; j++){
-    DATALIST[j] = (node_t*)malloc(buffersize*sizeof(DATALIST[j]));
-    DATALIST[j] = initialize_list();
-  }
-  // Populate the linked lists with our data
-  for (j = 0; j< size; j++){
-    char* point = strtok(DATA[j],",\n");
-    add_to_list(DATALIST[j], point);
-
-    while (point != NULL){
-      add_to_list(DATALIST[j], point);
-      point = strtok(NULL, ",\n");
-    }
-  }
-
-  // Calculate the total number of data points
-  int k;
-  char line[256];
-  int npoints = count_list(DATALIST[0]);
- 
-  // Actually write the data
-  j = 0;
-  k = 0;
-  for (j = 0; j < npoints; j++){
-    strcpy(line,"");
-    // Build the data line by line
-    for (k = 0; k< size; k++){
-      strcat(line, DATALIST[k]->data);
-      strcat(line, "\t");
-      DATALIST[k] = DATALIST[k]->next;
-    }
-    // Add a newline to each row
-    strcat(line, "\n");
-    fprintf(file, line);
-  }
-
-  // destroy the lists
-  j = 0;
-  for (j = 0; j<size; j++)
-    destroy_list(DATALIST[j]);
-
-  free(DATALIST);
-  fclose(file); 
-  return 0; 
-}
-
-
 int savedata(int ud, char* filename, node_t *listVARS, int buffersize){
-
- 
   // DATA[i] needs to be read/write so it must 
   // be an array. If data is char** then it is 
   // read only and we cannot use strtok later!!
-
   int count; 
+  node_t *cp_listVARS = initialize_list();
   count = count_list(listVARS); 
   if (count == 0){
     return;
   }
-
-  node_t *cp_listVARS = initialize_list();
 
   char **DATA;
   DATA = (char**)malloc(count*sizeof(char*));
@@ -388,10 +311,72 @@ int savedata(int ud, char* filename, node_t *listVARS, int buffersize){
     free(cmd);
     i++;
   }
+   
+  // Get a file pointer
+  FILE *file; 
+  file = fopen(filename,"w+"); 
+ 
+  int size;
+  size = count_list(cp_listVARS);
 
-  // Rewind the linked list. Otherwise we will get a
-  // a segfault.
-  writeToFile(filename, cp_listVARS, DATA, buffersize);
+  /* // WRITE HEADER TO FILE */
+  char *header = malloc(sizeof(header));
+  strcpy(header,""); 
+
+ // while (listVARS->next != NULL){
+  while (cp_listVARS->next){
+    strcat(header, strdup(cp_listVARS->data));
+    strcat(header, "\t\t");
+    cp_listVARS = cp_listVARS->next;
+  }
+  strcat(header,"\n");
+  fprintf(file, remove_char(header,'\''));
+
+  /* node_t **DATALIST; */
+  /* DATALIST = (node_t**)malloc(8*sizeof(node_t*)); */
+  /* for (j = 0; j<8; j++){ */
+  /*   DATALIST[j] = (node_t*)malloc(buffersize*sizeof(DATALIST[j])); */
+  /*   DATALIST[j] = initialize_list(); */
+  /* } */
+  /* // Populate the linked lists with our data */
+  /* for (j = 0; j< size; j++){ */
+  /*   char* point = strtok(DATA[j],",\n"); */
+  /*   add_to_list(DATALIST[j], point); */
+
+  /*   while (point != NULL){ */
+  /*     add_to_list(DATALIST[j], point); */
+  /*     point = strtok(NULL, ",\n"); */
+  /*   } */
+  /* } */
+  /* // Calculate the total number of data points */
+  /* int k; */
+  /* char line[256]; */
+  /* int npoints = count_list(DATALIST[0]); */
+ 
+  /* // Actually write the data */
+  /* for (j = 0; j < npoints; j++){ */
+  /*   strcpy(line,""); */
+  /*   // Build the data line by line */
+  /*   for (k = 0; k < size; k++){ */
+  /*     strcat(line, DATALIST[k]->data); */
+  /*     strcat(line, "\t"); */
+  /*     if (DATALIST[k]->next!=NULL){ */
+  /* 	DATALIST[k] = DATALIST[k]->next; */
+  /*     } */
+  /*   } */
+  /*   // Add a newline to each row */
+  /*   strcat(line, "\n"); */
+  /*   fprintf(file, line); */
+  /* } */
+
+  // destroy the lists
+  /* j = 0; */
+  /* for (j = 0; j<10; j++) */
+  /*   destroy_list(DATALIST[j]); */
+
+  //free(DATALIST);
+  fclose(file); 
+  return 0; 
 }
 
 

@@ -141,11 +141,15 @@ static int INITIALIZE_GPIB(GtkWidget *initBUTTON, GTKwrapper* state)
   if (state->MODE == 2)
     _setSamplingMode(gpibHANDLE);
 
-  gtk_combo_box_text_remove_all(GTK_COMBO_BOX_TEXT (state->listCOMBO));
-  destroy_list(state->comboVARS);
-  destroy_list(state->listVARS);
-  state->comboVARS = initialize_list();
-  state->listVARS = initialize_list();
+  if (state->comboVARS->data[0] != '\0'){
+    gtk_combo_box_text_remove_all(GTK_COMBO_BOX_TEXT(state->listCOMBO));
+    remove_all_from_list(&state->comboVARS);
+  }
+  if (state->listVARS->data[0] != '\0'){
+    remove_all_from_list(&state->listVARS);
+    strcpy(state->listSTR,(char*)print_list_to_string(state->listVARS));
+    gtk_entry_set_text((GtkEntry*)state->listENTRY,state->listSTR);
+  }
 }
 static void MEASURE(GtkWidget *measBUTTON, GTKwrapper* state)
 {

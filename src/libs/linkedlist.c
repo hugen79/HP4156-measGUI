@@ -6,6 +6,7 @@
 node_t* initialize_list(void){
   node_t *list = malloc(sizeof(*list));
   list->data = (char*)malloc(16*sizeof(char));
+  strcpy(list->data,"\0");
   list->next = NULL;
   list->head = list;
   return list;
@@ -13,7 +14,7 @@ node_t* initialize_list(void){
 
 int print_list(node_t *list){
  
-  if ((list->data == NULL) && (list->next == NULL)){
+  if ((list->data[0] == '\0') && (list->next == NULL)){
     printf("[EMPTY LIST]\n");
     return -1;
   }
@@ -37,7 +38,7 @@ char* print_list_to_string(node_t *list){
 
   strcpy(str,"");
   node_t *current = list;  
-  if ((list->data == NULL) && (list->next == NULL)){
+  if ((list->data[0] == '\0') && (list->next == NULL)){
     strcpy(str, "[EMPTY LIST]\0");
     current = current->head;
     return str;
@@ -57,7 +58,7 @@ char* print_list_to_string(node_t *list){
 int count_list(node_t *list){
   int result = 0;
   node_t *current = list;  
-  if ((list->data == NULL) && (list->next == NULL)){
+  if ((list->data[0] == '\0') && (list->next == NULL)){
     return result;
   }
   
@@ -70,7 +71,7 @@ int count_list(node_t *list){
 
 int add_to_list(node_t *list, char* data){
   
-  if ((list->data == NULL) && (list->next == NULL)){
+  if ((list->data[0] == '\0') && (list->next == NULL)){
     list->head = list;
     list->data = data; 
     list->next = NULL;
@@ -88,7 +89,7 @@ int add_to_list(node_t *list, char* data){
 
 int add_to_list_unique(node_t *list, char* data){
   
-  if ((list->data == NULL) && (list->next == NULL)){
+  if ((list->data == '\0') && (list->next == NULL)){
     list->data = data; 
     list->next = NULL;
   }
@@ -113,8 +114,7 @@ int add_to_list_unique(node_t *list, char* data){
 int remove_from_list(node_t **list, char* data){
 
   // EMPTY LIST CASE
-  if ( (*list)->next == NULL)  {
-    (*list) = initialize_list();
+  if ((*list)->data[0] == '\0' )  {
     return 0;
   }
 
@@ -200,10 +200,9 @@ int destroy_list(node_t* list){
 // we will modify it when we reinitialize !!
 int remove_all_from_list(node_t** list){
   
-  if (( (*list)->next == NULL) && ((*list)->data == NULL ))  {
+  if (( (*list)->next == NULL) && ((*list)->data[0] == '\0'))  {
     return 0;
   }
-
 
   node_t*  current = malloc(sizeof(node_t*));
   node_t** current_free = malloc(sizeof(node_t**));;
