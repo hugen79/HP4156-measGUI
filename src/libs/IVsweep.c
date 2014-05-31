@@ -217,9 +217,32 @@ int remFromListAll(int ud){
 
 }
 
-int measureGRAPH(int ud){
-  // Perform Measurement and autoscale
+int measureGRAPH(int ud, node_t* listVARS){
+
   _write(ud,":PAGE:DISP:MODE GRAP");
+
+  // Set the x and y axis to the first two things in 
+  // listVARS
+  if (count_list(listVARS) > 2){
+
+    listVARS = listVARS->head;
+    char* cmdx; 
+    cmdx = (char*)malloc(32);
+    strcpy(cmdx,":PAGE:DISP:GRAP:X:NAME ");
+    strcat(cmdx, strdup(stringify(listVARS->data)));
+    _write(ud, cmdx);
+    char* cmdy;
+    cmdy = (char*)malloc(32);
+    listVARS = listVARS->next;
+    strcpy(cmdy,":PAGE:DISP:GRAP:Y1:NAME ");
+    strcat(cmdy, strdup(stringify(listVARS->data)));
+    _write(ud, cmdy);
+    listVARS = listVARS->head;
+    
+    free(cmdx);
+    free(cmdy);
+  }
+  // Perform Measurement and autoscale
   _write(ud,":PAGE:SCON:SING");
   _write(ud,"*WAI");
   _write(ud,":PAGE:GLIS:SCAL:AUTO ONCE");
@@ -230,80 +253,6 @@ int measureLIST(int ud){
   _write(ud,":PAGE:SCON:SING");
   _write(ud,"*WAI");
   _write(ud,":PAGE:GLIS:SCAL:AUTO ONCE");
-}
-
-int writeToFile(char *filename, node_t *listVARS, char **DATA, int size){ 
-  
-  // Get a file pointer
-  FILE *file; 
-  file = fopen(filename,"w+"); 
-
-  //  print_list(listVARS);
-
-  /* // WRITE HEADER TO FILE */
-  char *header;
-  header = (char*)malloc(256);
-  strcpy(header,""); 
-
- // while (listVARS->next != NULL){
-  while (listVARS->next){
-    strcat(header, strdup(listVARS->data));
-    strcat(header, "\t\t");
-    listVARS=listVARS->next;
-  }
-  strcat(header,"\n");
-  fprintf(file, remove_char(header,'\''));
-  free(header);
-
-  int j;
-  node_t *DATALIST[size];
-  // need to initialize all the linked lists
-  for (j = 0; j<size; j++)
-    DATALIST[j]=initialize_list();
-  j=0;
-
-  // Populate the linked lists with our data
-  for (j = 0; j< size; j++){
-    char* point = strtok(DATA[j],",\n");
-    add_to_list(DATALIST[j], point);
-
-    while (point != NULL){
-      add_to_list(DATALIST[j], point);
-      point = strtok(NULL, ",\n");
-    }
-  }
-
-  // Calculate the total number of data points
-  int k;
-  int npoints = count_list(DATALIST[0]);
-  
-  // Actually write the data
-  j = 0;
-  k = 0;
-  for (j = 0; j < npoints; j++){
-
-    char* line;
-    line = (char*)malloc(256);
-    strcpy(line,"");
-    // Build the data line by line
-    for (k = 0; k< size; k++){
-      strcat(line, DATALIST[k]->data);
-      strcat(line, "\t");
-      DATALIST[k] = DATALIST[k]->next;
-    }
-    // Add a newline to each row
-    strcat(line, "\n");
-    fprintf(file, line);
-    free(line);
-  }
-
-  // destroy the lists
-  j = 0;
-  for (j = 0; j<size; j++)
-    destroy_list(DATALIST[j]);
-
-  fclose(file);
-  return 0;
 }
 
 int setSamplingVar(int ud, const char* data[]){
@@ -327,36 +276,122 @@ int setUserFunction(int ud, const char* data[]){
   _write(ud, cmd);
 }
 
+int writeToFile(char *filename, node_t *listVARS, char **DATA, int buffersize){ 
+  
+  // Get a file pointer
+  FILE *file; 
+  file = fopen(filename,"w+"); 
+ 
+  int size;
+  size = count_list(listVARS);
+
+  /* // WRITE HEADER TO FILE */
+  char *header = malloc(sizeof(header));
+  strcpy(header,""); 
+
+ // while (listVARS->next != NULL){
+  while (listVARS->next){
+    strcat(header, strdup(listVARS->data));
+    strcat(header, "\t\t");
+    listVARS=listVARS->next;
+  }
+  strcat(header,"\n");
+  fprintf(file, remove_char(header,'\''));
+
+  node_t **DATALIST;
+  DATALIST = (node_t**)malloc(8*sizeof(node_t*));
+
+  int j;
+  for (j = 0; j<8; j++){
+    DATALIST[j] = (node_t*)malloc(buffersize*sizeof(DATALIST[j]));
+    DATALIST[j] = initialize_list();
+  }
+  // Populate the linked lists with our data
+  for (j = 0; j< size; j++){
+    char* point = strtok(DATA[j],",\n");
+    add_to_list(DATALIST[j], point);
+
+    while (point != NULL){
+      add_to_list(DATALIST[j], point);
+      point = strtok(NULL, ",\n");
+    }
+  }
+
+  // Calculate the total number of data points
+  int k;
+  char line[256];
+  int npoints = count_list(DATALIST[0]);
+ 
+  // Actually write the data
+  j = 0;
+  k = 0;
+  for (j = 0; j < npoints; j++){
+    strcpy(line,"");
+    // Build the data line by line
+    for (k = 0; k< size; k++){
+      strcat(line, DATALIST[k]->data);
+      strcat(line, "\t");
+      DATALIST[k] = DATALIST[k]->next;
+    }
+    // Add a newline to each row
+    strcat(line, "\n");
+    fprintf(file, line);
+  }
+
+  // destroy the lists
+  j = 0;
+  for (j = 0; j<size; j++)
+    destroy_list(DATALIST[j]);
+
+  free(DATALIST);
+  fclose(file); 
+  return 0; 
+}
+
+
 int savedata(int ud, char* filename, node_t *listVARS, int buffersize){
 
-  int i = 0;
+ 
   // DATA[i] needs to be read/write so it must 
   // be an array. If data is char** then it is 
   // read only and we cannot use strtok later!!
-  char *DATA[count_list(listVARS)];   
-  
-  print_list(listVARS);
 
+  int count; 
+  count = count_list(listVARS); 
+  if (count == 0){
+    return;
+  }
+
+  node_t *cp_listVARS = initialize_list();
+
+  char **DATA;
+  DATA = (char**)malloc(count*sizeof(char*));
+  
+  int j;
+  for (j = 0; j<10; j++){
+    DATA[j] = malloc(buffersize*sizeof(char));
+  }
+
+  int i = 0;
   while (listVARS->next != NULL){
-    char* cmd;
-    cmd = (char*)malloc(16);
+    char* cmd = malloc(sizeof(char*));
     strcpy(cmd,":DATA? ");
     DATA[i]=_read(ud, strcat(cmd, strdup(listVARS->data)), buffersize);
+    add_to_list(cp_listVARS, strdup(listVARS->data));
     
     // If there is no data ... then just quit. 
     // Otherwise write will issue SEGFAULT
-    if (!(strcmp(DATA[i], "")))
+    if (!(strcmp(DATA[i],"")))
       return 0;
 
-    listVARS = listVARS->next;
+    listVARS    = listVARS->next;
     free(cmd);
     i++;
   }
 
   // Rewind the linked list. Otherwise we will get a
   // a segfault.
-  listVARS = listVARS->head;
-  writeToFile(filename,listVARS , DATA, i);
+  writeToFile(filename, cp_listVARS, DATA, buffersize);
 }
 
 

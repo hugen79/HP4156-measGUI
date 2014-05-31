@@ -9,8 +9,8 @@
 #include "IVsweep.h"
 #include "gpib_io.h"
 
-// GPIB BUFFER SIZE 32kb 
-#define BUFFERSIZE 32000
+// GPIB BUFFER SIZE 64kb 
+#define BUFFERSIZE 64000
 
 // GUI Window SIZE
 #define WIDTH 900
@@ -151,7 +151,7 @@ static int INITIALIZE_GPIB(GtkWidget *initBUTTON, GTKwrapper* state)
 static void MEASURE(GtkWidget *measBUTTON, GTKwrapper* state)
 {
   if (state->MODE == 1){
-    measureGRAPH(gpibHANDLE);
+    measureGRAPH(gpibHANDLE, state->listVARS);
   }
   if (state->MODE == 2){
     measureLIST(gpibHANDLE);
@@ -875,7 +875,6 @@ static void generateVAR_SM(GTKwrapper* state){
   state->varBUTTON_SM = gtk_button_new_with_label("Set Time");
   gtk_fixed_put(GTK_FIXED(state->fixed), state->varBUTTON_SM, X3, Y4-50);
   gtk_widget_set_size_request(state->varBUTTON_SM, BWIDTH, BHEIGHT);
-
   g_signal_connect(state->varBUTTON_SM,"clicked", G_CALLBACK(SETVAR_SM), state);
 }
 

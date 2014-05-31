@@ -3,10 +3,9 @@
 #include <string.h>
 #include "linkedlist.h"
 
-#define SIZE 100
 node_t* initialize_list(void){
-  node_t *list = malloc(SIZE);
-  list->data = NULL;
+  node_t *list = malloc(sizeof(*list));
+  list->data = (char*)malloc(16*sizeof(char));
   list->next = NULL;
   list->head = list;
   return list;
@@ -66,7 +65,6 @@ int count_list(node_t *list){
     current = current->next;
     result++;
   }
-  current = current->head;
   return result;
 }
 
@@ -81,7 +79,7 @@ int add_to_list(node_t *list, char* data){
   while (current->next != NULL){
     current = current->next;
   }
-  current->next = malloc(SIZE);
+  current->next = malloc(sizeof(*list));
   current->data = strdup(data);
   current->next->head = list;
   current->next->next = NULL;
@@ -100,7 +98,7 @@ int add_to_list_unique(node_t *list, char* data){
       return -1;
     current = current->next;
   }
-  current->next = malloc(SIZE);
+  current->next = malloc(sizeof(*list));
   current->data = strdup(data);
   current->next->head = list;
   current->next->next = NULL;
@@ -223,7 +221,18 @@ int remove_all_from_list(node_t** list){
 }
 
 /* int main(){ */
-/*   node_t* list = initialize(); */
+/*   node_t* list = initialize_list(); */
+
+/*   int i; */
+/*   for (i=0; i<50000; i++){ */
+/*     add_to_list(list,"a");  */
+/*   } */
+/*   print_list(list); */
+/*   remove_all_from_list(&list); */
+/*   add_to_list(list,"b"); */
+/*   print_list(list); */
+
+
 /*   add_to_list(list,"a"); */
 /*   add_to_list(list,"b"); */
 /*   add_to_list(list,"c"); */
@@ -251,7 +260,6 @@ int remove_all_from_list(node_t** list){
 /*   printf("\n"); */
 /*   remove_from_list(&list,"a"); */
 /*   printf("%s\n",print_list_to_string(list)); */
-/*   print_list(list); */
-/*  } */
+/* } */
 
 
