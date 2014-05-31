@@ -616,6 +616,7 @@ static int SETSMU_SM(GtkWidget *smuBUTTON,  GTKwrapper *state)
   char* comp    = (char*)gtk_entry_get_text((GtkEntry*)state->SMU_SM[5]);      
  
   gtk_combo_box_text_remove_all(GTK_COMBO_BOX_TEXT (state->listCOMBO));   
+  add_to_list_unique(state->comboVARS,strdup("@TIME"));
   add_to_list_unique(state->comboVARS,strdup(vtmp));
   
   if (strlen(itmp) < 8){
@@ -640,7 +641,11 @@ static int SETSMU_SM(GtkWidget *smuBUTTON,  GTKwrapper *state)
   else{
     iname = "__NOTHING__";
   }
-  
+ 
+  if (strlen(comp) > 8){
+    comp = "__NOTHING__";
+  }
+ 
   // Declare a variable to hold out data
   const char* data[7];
   // Black magick bitwise operations for mode selection
@@ -658,8 +663,8 @@ static int SETSMU_SM(GtkWidget *smuBUTTON,  GTKwrapper *state)
     data[1] = vname; 
     data[2] = iname;
     data[3] = mode; 
+    data[4] = NULL;
     data[5] = NULL;
-    data[6] = NULL;
     setSamplingSMU(gpibHANDLE, data);
   }
 }
@@ -682,11 +687,19 @@ static void inameChanger_SM(GtkWidget *widget, GTKwrapper* state){
 
   if (activate){
     gtk_entry_set_text(GTK_ENTRY(state->SMU_SM[2]),"------------------");
+    gtk_entry_set_text(GTK_ENTRY(state->SMU_SM[5]),"------------------");
+    gtk_combo_box_text_remove(GTK_COMBO_BOX_TEXT(state->SMU_SM[3]),1);
+    gtk_combo_box_text_remove(GTK_COMBO_BOX_TEXT(state->SMU_SM[3]),1);
     gtk_editable_set_editable(GTK_EDITABLE(state->SMU_SM[2]), FALSE);
+    gtk_editable_set_editable(GTK_EDITABLE(state->SMU_SM[5]), FALSE);
   }
   else{
     gtk_entry_set_text(GTK_ENTRY(state->SMU_SM[2]), "");
+    gtk_entry_set_text(GTK_ENTRY(state->SMU_SM[5]), "");
+    gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(state->SMU_SM[3]),"I");
+    gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(state->SMU_SM[3]),"COMM");
     gtk_editable_set_editable(GTK_EDITABLE(state->SMU_SM[2]), TRUE);
+    gtk_editable_set_editable(GTK_EDITABLE(state->SMU_SM[5]), TRUE);
   }
 }
 
@@ -1056,13 +1069,14 @@ static void destroySWEEPMODE(GTKwrapper* state){
   if ( (state->MODELABEL!=NULL) && (GTK_IS_WIDGET(state->MODELABEL)))
     gtk_widget_destroy (state->MODELABEL);
 
-  // Destroy SMU control ... this is slightly different in sampling 
-  // mode, and we do not need as many features. 
-  int i; 
+  // Destroy SMU control ... this is slightly different in sampling
+  // mode, and we do not need as many features.
+  int i;
   if ( (state->smuBUTTON !=NULL) && (GTK_IS_WIDGET(state->smuBUTTON)))
     gtk_widget_destroy (state->smuBUTTON);
   if ( (state->disBUTTON !=NULL) && (GTK_IS_WIDGET(state->disBUTTON)))
     gtk_widget_destroy (state->disBUTTON);
+
   for (i = 0; i < 8; i++){
     if ( (state->SMU[i] !=NULL) && (GTK_IS_WIDGET(state->SMU[i])))
       gtk_widget_destroy (state->SMU[i]);
@@ -1072,7 +1086,7 @@ static void destroySWEEPMODE(GTKwrapper* state){
       gtk_widget_destroy (state->smuLABELS[i]);
   }
 
-  // Destroy Variable Control ... we do not need this in sampling mode
+  /* // Destroy Variable Control ... we do not need this in sampling mode */
   if ( (state->varBUTTON !=NULL) && (GTK_IS_WIDGET(state->varBUTTON)))
     gtk_widget_destroy (state->varBUTTON);
   for (i = 0; i< 5; i++){
@@ -1084,7 +1098,7 @@ static void destroySWEEPMODE(GTKwrapper* state){
       gtk_widget_destroy (state->VAR[i]);
   }
 
-  // Destroy Separators 
+  // Destroy Separators
   for (i = 0; i< 3; i++){
     if ( (state->sepLABELS[i] !=NULL) && (GTK_IS_WIDGET(state->sepLABELS[i])))
       gtk_widget_destroy (state->sepLABELS[i]);
@@ -1093,13 +1107,6 @@ static void destroySWEEPMODE(GTKwrapper* state){
     if ( (state->SEP[i] !=NULL) && (GTK_IS_WIDGET(state->SEP[i])))
       gtk_widget_destroy (state->SEP[i]);
   }
-
-  // Destroy and recreate the list variables 
-  gtk_combo_box_text_remove_all(GTK_COMBO_BOX_TEXT (state->listCOMBO));
-  destroy_list(state->comboVARS);
-  destroy_list(state->listVARS);
-  state->comboVARS = initialize_list();
-  state->listVARS = initialize_list();
 }
 
 static void destroySAMPLINGMODE(GTKwrapper* state){
@@ -1128,12 +1135,6 @@ static void destroySAMPLINGMODE(GTKwrapper* state){
     if ( (state->smuLABELS_SM[i] !=NULL) && (GTK_IS_WIDGET(state->smuLABELS_SM[i])))
       gtk_widget_destroy (state->smuLABELS_SM[i]);
   }
-
-  gtk_combo_box_text_remove_all(GTK_COMBO_BOX_TEXT (state->listCOMBO));
-  destroy_list(state->comboVARS);
-  destroy_list(state->listVARS);
-  state->comboVARS = initialize_list();
-  state->listVARS = initialize_list();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -1151,7 +1152,6 @@ static void generateSWEEPMODE (GSimpleAction *action, GVariant*parameter,  void*
     generateUSERVAR(_state);
     generateSaveControl(_state);
     generateListControl(_state);
-    generateWindowSeparators(_state);
   }
 
   if (_state->MODE != 1){
@@ -1160,9 +1160,8 @@ static void generateSWEEPMODE (GSimpleAction *action, GVariant*parameter,  void*
     generateMODELABEL(_state,"SWEEP MODE CONTROL");
     generateSMU(_state);
     generateVAR(_state);
-
+    generateWindowSeparators(_state);
   }
-
   gtk_widget_show_all(GTK_WIDGET(_state->window)); 
 }
 
