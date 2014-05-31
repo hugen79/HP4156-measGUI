@@ -217,9 +217,16 @@ int remFromListAll(int ud){
 
 }
 
-int measure(int ud){
+int measureGRAPH(int ud){
   // Perform Measurement and autoscale
   _write(ud,":PAGE:DISP:MODE GRAP");
+  _write(ud,":PAGE:SCON:SING");
+  _write(ud,"*WAI");
+  _write(ud,":PAGE:GLIS:SCAL:AUTO ONCE");
+}
+
+int measureLIST(int ud){
+  _write(ud,":PAGE:DISP:MODE LIST");
   _write(ud,":PAGE:SCON:SING");
   _write(ud,"*WAI");
   _write(ud,":PAGE:GLIS:SCAL:AUTO ONCE");
@@ -299,6 +306,17 @@ int writeToFile(char *filename, node_t *listVARS, char **DATA, int size){
   return 0;
 }
 
+int setSamplingVar(int ud, const char* data[]){
+
+  char cmd1[32];
+  strcpy(cmd1,":PAGE:MEAS:SAMP:IINT ");
+  _write(ud, strcat(cmd1,data[0]));
+
+  char cmd2[32];
+  strcpy(cmd2,":PAGE:MEAS:SAMP:POIN ");
+  _write(ud, strcat(cmd2,data[1]));
+}
+
 int setUserFunction(int ud, const char* data[]){
   char cmd[32] = ":PAGE:CHAN:UFUN:DEF ";
   strcat(cmd,data[0]);
@@ -317,6 +335,8 @@ int savedata(int ud, char* filename, node_t *listVARS, int buffersize){
   // read only and we cannot use strtok later!!
   char *DATA[count_list(listVARS)];   
   
+  print_list(listVARS);
+
   while (listVARS->next != NULL){
     char* cmd;
     cmd = (char*)malloc(16);

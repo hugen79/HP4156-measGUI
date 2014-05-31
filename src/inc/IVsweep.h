@@ -24,4 +24,7 @@ int remFromListAll(int ud);
 // SAVE DATA 
 int savedata(int ud, char* filename, node_t *listVARS, int buffersize);
 
+// MEASURE
+int measureGRAPH(int ud);
+int measureLIST(int ud);
 
