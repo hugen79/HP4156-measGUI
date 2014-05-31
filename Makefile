@@ -3,8 +3,8 @@ GUI_SOURCE = ./src/gui/
 CC         = gcc
 
 CFLAGS   = -c -I../inc/
-OPTFLAGS  =`pkg-config --cflags gtk+-3.0 gdk-3.0 cairo`    
-LDFLAGS  = `pkg-config --libs gtk+-3.0 gdk-3.0 cairo` /usr/local/lib/libgpib.so.0
+OPTFLAGS  =`pkg-config --cflags gtk+-3.0 cairo`    
+LDFLAGS  = `pkg-config --libs gtk+-3.0 cairo` /usr/local/lib/libgpib.so.0
 PROGRAM  = IVsweepGUI
 
 all: _bin

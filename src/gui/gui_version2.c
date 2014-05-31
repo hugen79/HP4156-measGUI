@@ -2,15 +2,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <gtk/gtk.h>
-#include <gdk/gdk.h>
 #include <cairo.h>
 #include "stringutils.h"
 #include "linkedlist.h"
 #include "IVsweep.h"
 #include "gpib_io.h"
 
-// GPIB BUFFER SIZE 64kb 
-#define BUFFERSIZE 64000
+// GPIB BUFFER SIZE 32kb 
+#define BUFFERSIZE 32000
 
 // GUI Window SIZE
 #define WIDTH 900
@@ -489,7 +488,7 @@ static void varChanger(GtkWidget *widget, GTKwrapper* state){
 }
 static void modeChanger(GtkWidget *widget, GTKwrapper* state){
   char *tmp;
-  tmp = (char*)gtk_combo_box_get_active((GtkComboBox*)state->VAR[1]);
+  tmp = (char*)gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(state->VAR[1]));
   if (strcmp(tmp,"LIN") != 0){
     gtk_entry_set_text(GTK_ENTRY(state->VAR[4]), "------------------");
     gtk_editable_set_editable(GTK_EDITABLE(state->VAR[4]), FALSE);
@@ -521,8 +520,7 @@ static void generateVAR(GTKwrapper* state){
   gtk_combo_box_set_active (GTK_COMBO_BOX (state->VAR[0]), 0);
   gtk_widget_set_size_request(state->VAR[0], BWIDTH, BHEIGHT);
   gtk_fixed_put(GTK_FIXED(state->fixed), state->VAR[0], X1, Y4);
-  g_signal_connect(state->VAR[0],"changed", G_CALLBACK(varChanger), state);
-
+ 
   // MODE SELECTOR
   state->VAR[1] = gtk_combo_box_text_new ();
   gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (state->VAR[1]),NULL, "LIN");
@@ -532,7 +530,7 @@ static void generateVAR(GTKwrapper* state){
   gtk_combo_box_set_active (GTK_COMBO_BOX (state->VAR[1]), 0);
   gtk_widget_set_size_request(state->VAR[1], BWIDTH, BHEIGHT);
   gtk_fixed_put(GTK_FIXED(state->fixed), state->VAR[1], X2, Y4);
-  g_signal_connect(state->VAR[1],"changed", G_CALLBACK(modeChanger), state);
+
   // label 
   state->varLABELS[0] = gtk_label_new("Mode");
   gtk_fixed_put(GTK_FIXED(state->fixed), state->varLABELS[0], X2, (int)Y4-20);
@@ -576,6 +574,10 @@ static void generateVAR(GTKwrapper* state){
   // label 
   state->varLABELS[4] = gtk_label_new("Compliance");
   gtk_fixed_put(GTK_FIXED(state->fixed), state->varLABELS[4], X6, (int)Y4-20);
+
+  // CALLBACKS
+  g_signal_connect(state->VAR[0],"changed", G_CALLBACK(varChanger), state);
+  g_signal_connect(state->VAR[1],"changed", G_CALLBACK(modeChanger), state);
 }
 
 
