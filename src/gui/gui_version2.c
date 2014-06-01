@@ -8,8 +8,8 @@
 #include "IVsweep.h"
 #include "gpib_io.h"
 
-// GPIB BUFFER SIZE 32kb 
-#define BUFFERSIZE 32000
+// GPIB BUFFER SIZE 64kb 
+#define BUFFERSIZE 64000
 
 // GUI Window SIZE
 #define WIDTH 900
