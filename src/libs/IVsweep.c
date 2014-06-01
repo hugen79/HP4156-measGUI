@@ -360,6 +360,9 @@ int savedata(int ud, char* filename, char liststr[], int buffersize){
       testpointer[j] = strtok_r(NULL,",\n", &savepointer[j]);                         
       if (testpointer[j] == NULL){
 	fclose(file);
+	for (j =0; j<count; j++)
+	  free(DATA[j]);
+	free(DATA);
 	return 0;
       }
       else{
