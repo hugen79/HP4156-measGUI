@@ -5,7 +5,7 @@ CC         = gcc
 CFLAGS   = -c -I../inc/
 OPTFLAGS  =`pkg-config --cflags gtk+-3.0 cairo`    
 LDFLAGS  = `pkg-config --libs gtk+-3.0 cairo` /usr/local/lib/libgpib.so.0
-PROGRAM  = IVsweepGUI
+PROGRAM  = DeviceMaster
 
 all: _bin
 	cd build; \
