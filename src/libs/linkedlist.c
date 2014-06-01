@@ -46,7 +46,7 @@ char* print_list_to_string(node_t *list){
 
   while (current->next != NULL){
     strcat(str,strdup(current->data));
-    strcat(str,"  ");
+    strcat(str," ");
     
     current = current->next;
   }
@@ -166,7 +166,7 @@ int remove_from_list(node_t **list, char* data){
   return 0;
 }
 
-int destroy_list(node_t* list){
+int destroy_list(node_t** list){
  
   // this is a tricky fuction. It starts at node_i
   // moves the list pointer to node_(i+1) after saving
@@ -184,8 +184,8 @@ int destroy_list(node_t* list){
   node_t** current_free = malloc(sizeof(node_t**));;
 
   // rewind just in case
-  current = list->head;
-  while (current->next){
+  current = (*list)->head;
+  while (current->next != NULL){
     memcpy(current_free, &current, sizeof(&current));
     current = current->next;
     free(*current_free);

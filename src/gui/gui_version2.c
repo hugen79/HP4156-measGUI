@@ -963,10 +963,20 @@ static void generateUSERVAR(GTKwrapper* state){
 static void LISTADD(GtkWidget* listADD, GTKwrapper* state){
   char* var;
   var = (char*)gtk_combo_box_text_get_active_text((GtkComboBoxText*)state->listCOMBO);
-  add_to_list_unique( state->listVARS,strdup(var));
-  strcpy(state->listSTR,(char*)print_list_to_string(state->listVARS));
-  gtk_entry_set_text((GtkEntry*)state->listENTRY,state->listSTR);
-  addToList(gpibHANDLE, stringify(var));
+  // Get active text returns NULL if there is nothing in the text box ...
+  // In this case we do nothing. Otherwise ... if we try to strdup NULL 
+  // we will segfault. NULL is by definition the 0 memory address and 
+  // adjacent memory belongs to the the kernel. If we try to strdup here we 
+  // are strduping out of the kernels memory (e.g. out of our segment). 
+  if (var == NULL){
+    return; 
+  }
+  else {
+    add_to_list_unique(state->listVARS,strdup(var));
+    strcpy(state->listSTR,(char*)print_list_to_string(state->listVARS));
+    gtk_entry_set_text((GtkEntry*)state->listENTRY,state->listSTR);
+    addToList(gpibHANDLE, stringify(var));
+  }
 }
 static void LISTREM(GtkWidget* listREM, GTKwrapper* state){
 
@@ -1052,7 +1062,13 @@ static void SAVEDATA(GtkWidget* saveBUTTON, GTKwrapper* state){
     gtk_entry_set_text(GTK_ENTRY(state->saveENTRY),"ERROR .. FILENAME NOT SET!!");
     return;
   }
-
+  
+  // Copy the list of save vars into a string. We will
+  // strtok this later, so we need to make sure to pass
+  // a copy to the save function. 
+  char tmpString[32];
+  strcpy(tmpString, state->listSTR);
+  
   int INC = (int)gtk_switch_get_active ((GtkSwitch*)state->saveINC);
   if (INC) {
 
@@ -1072,14 +1088,15 @@ static void SAVEDATA(GtkWidget* saveBUTTON, GTKwrapper* state){
     strcat(tmpPath, incPath);
 
     // update the file name in the entry field
+   
     gtk_entry_set_text(GTK_ENTRY(state->saveENTRY), tmpPath);
     state->increment++;
-    savedata(gpibHANDLE, tmpPath, state->listVARS, (int)BUFFERSIZE);
+    savedata(gpibHANDLE, tmpPath, tmpString, (int)BUFFERSIZE);
   }
   else {
     // if the incrementor is deselected then reset.
     state->increment = 0;
-    savedata(gpibHANDLE, state->filename, state->listVARS, (int)BUFFERSIZE);
+    savedata(gpibHANDLE, state->filename, tmpString, (int)BUFFERSIZE);
   }
 }
 
@@ -1209,10 +1226,6 @@ static void destroySAMPLINGMODE(GTKwrapper* state){
     if ( (state->varLABELS_SM[i] !=NULL) && (GTK_IS_WIDGET(state->varLABELS_SM[i])))
       gtk_widget_destroy (state->varLABELS_SM[i]);
   }
-
-
-
-
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -1223,9 +1236,8 @@ static void generateSWEEPMODE (GSimpleAction *action, GVariant*parameter,  void*
   GTKwrapper* _state = (GTKwrapper*)malloc(sizeof(GTKwrapper*));
   _state = gui_state; 
   _setSweepMode(gpibHANDLE);
-
   // All things common to both modes go in these
-  if (!(_state->MODE)){
+  if (_state->MODE == 0){
     generateINIT(_state);
     generateUSERVAR(_state);
     generateSaveControl(_state);
@@ -1253,7 +1265,7 @@ static void generateSAMPLINGMODE (GSimpleAction *action,GVariant*parameter, void
   _setSamplingMode(gpibHANDLE);
   
   // All things common to both modes go in these
-  if (!(_state->MODE)){
+  if (_state->MODE == 0){
     generateINIT(_state);
     generateUSERVAR(_state);
     generateListControl(_state);
@@ -1281,7 +1293,6 @@ static void quit (GSimpleAction *action, GVariant *parameter, void* gui_state)
 
 static void startup (GtkApplication* app, GTKwrapper* state)
 {
-  state->MODE = 0;
   static const GActionEntry actions[] = {
     {"sweepmode",  generateSWEEPMODE},
     {"samplingmode", generateSAMPLINGMODE},
@@ -1338,6 +1349,7 @@ int main (int argc, char **argv)
   state->filename   = malloc(100);
   state->listSTR    = malloc(100);
   state->increment  = 0;
+  state->MODE       = 0;
 
   state->app = gtk_application_new ("org.gtk.example",G_APPLICATION_FLAGS_NONE);
   g_signal_connect (state->app, "startup", G_CALLBACK (startup), state);

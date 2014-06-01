@@ -22,13 +22,13 @@ int remFromList(int ud, char* variable);
 int remFromListAll(int ud);
 
 // SAVE DATA 
-int savedata(int ud, char* filename, node_t *listVARS, int buffersize);
+int savedata(int ud, char* filename, char liststr[], int buffersize);
 
 // MEASURE
 int measureGRAPH(int ud, node_t* listVARS);
 int measureLIST(int ud);
 
 // SAVE
-int writeToFile(char *filename, node_t *listVARS, char **DATA, int buffersize);
-int savedata(int ud, char* filename, node_t *listVARS, int buffersize);
+//int writeToFile(char *filename, node_t *listVARS, char **DATA, int buffersize);
+//int savedata(int ud, char* filename, node_t **listVARS, int buffersize);
 

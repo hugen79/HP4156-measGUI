@@ -276,107 +276,100 @@ int setUserFunction(int ud, const char* data[]){
   _write(ud, cmd);
 }
 
-int savedata(int ud, char* filename, node_t *listVARS, int buffersize){
-  // DATA[i] needs to be read/write so it must 
-  // be an array. If data is char** then it is 
-  // read only and we cannot use strtok later!!
-  int count; 
-  node_t *cp_listVARS = initialize_list();
-  count = count_list(listVARS); 
-  if (count == 0){
-    return;
-  }
+int savedata(int ud, char* filename, char liststr[], int buffersize){
 
+  // DO nothing if liststr is empty
+  if(liststr == NULL)
+    return 0;
+  if(!(strcmp(liststr,"")))
+    return 0;
+  if(!(strcmp(liststr,"[EMPTY LIST]"))) 
+    return 0;
+
+  // First allocate some memory for the data 
+  // strings. These are LONG so they need to 
+  // be allocated on the HEAP to prevent a 
+  // STAAAACCCKKKK OVERFLOOWWWW
+  int j,k,count;
   char **DATA;
-  DATA = (char**)malloc(count*sizeof(char*));
-  
-  int j;
-  for (j = 0; j<10; j++){
+  DATA = (char**)malloc(8*sizeof(char*));
+  for (j = 0; j<8; j++)
     DATA[j] = malloc(buffersize*sizeof(char));
-  }
-
-  int i = 0;
-  while (listVARS->next != NULL){
-    char* cmd = malloc(sizeof(char*));
-    strcpy(cmd,":DATA? ");
-    DATA[i]=_read(ud, strcat(cmd, strdup(listVARS->data)), buffersize);
-    add_to_list(cp_listVARS, strdup(listVARS->data));
     
-    // If there is no data ... then just quit. 
-    // Otherwise write will issue SEGFAULT
-    if (!(strcmp(DATA[i],"")))
-      return 0;
-
-    listVARS    = listVARS->next;
-    free(cmd);
-    i++;
+  // Construct the header first from our copy 
+  // of liststr and write to file. Note that we 
+  // are simultaneously constructing the file 
+  // header to save a few lines of code. 
+  j = 0;
+  count = 0;
+  char header[32] = "";
+  char* col = strtok(liststr," "); 
+  while (col != NULL){
+    // construct the data header 
+    strcat(header,col);
+    strcat(header,"\t\t");
+    // construct the data command and request the data.
+    // If there is no data then just return.  
+    char cmd[16] = ":DATA? ";
+    DATA[j] = _read(ud, strcat(cmd, col), buffersize);
+    if (!(strcmp(DATA[j],"")))
+      return -1;
+  
+    // strtok again to get the next thing
+    col = strtok(NULL," ");
+    count++;
+    j++;
   }
-   
-  // Get a file pointer
+  strcat(header, "\n");
+ 
+  // Now we have the data AND the header constructed. 
+  // At this point we need to write out the file. 
+  // First we get a file pointer and print the header.
   FILE *file; 
-  file = fopen(filename,"w+"); 
- 
-  int size;
-  size = count_list(cp_listVARS);
+  file = fopen(filename,"w+");  
+  fprintf(file,header);
 
-  /* // WRITE HEADER TO FILE */
-  char *header = malloc(sizeof(header));
-  strcpy(header,""); 
+  // Now we will write out the actual file. For this we
+  // will use a rather advanced application of strtok. 
+  // this is advanagous because one only passes through 
+  // each data list ONCE ... rather than twice (i.e. the
+  // list method). First we need an array of test and 
+  // save pointers. 
+  char *testpointer[count]; 
+  char *savepointer[count];
 
- // while (listVARS->next != NULL){
-  while (cp_listVARS->next){
-    strcat(header, strdup(cp_listVARS->data));
-    strcat(header, "\t\t");
-    cp_listVARS = cp_listVARS->next;
+  // And an array for each line. Now for stktok, we need 
+  // to get the starting line. 
+  char *line;
+  strcpy(line, "");
+  for ( j=0;j<count; j++){
+    testpointer[j] = strtok_r( DATA[j],",\n", &savepointer[j]);                         
+    strcat(line, testpointer[j]);
+    strcat(line,"\t");
   }
-  strcat(header,"\n");
-  fprintf(file, remove_char(header,'\''));
+  strcat(line,"\n");
+  fprintf(file, line);
+  // Once we have thw initial pointers ... we just loop through 
+  // all of the lines.
+  // while (testpointer[0]){
 
-  /* node_t **DATALIST; */
-  /* DATALIST = (node_t**)malloc(8*sizeof(node_t*)); */
-  /* for (j = 0; j<8; j++){ */
-  /*   DATALIST[j] = (node_t*)malloc(buffersize*sizeof(DATALIST[j])); */
-  /*   DATALIST[j] = initialize_list(); */
-  /* } */
-  /* // Populate the linked lists with our data */
-  /* for (j = 0; j< size; j++){ */
-  /*   char* point = strtok(DATA[j],",\n"); */
-  /*   add_to_list(DATALIST[j], point); */
-
-  /*   while (point != NULL){ */
-  /*     add_to_list(DATALIST[j], point); */
-  /*     point = strtok(NULL, ",\n"); */
-  /*   } */
-  /* } */
-  /* // Calculate the total number of data points */
-  /* int k; */
-  /* char line[256]; */
-  /* int npoints = count_list(DATALIST[0]); */
- 
-  /* // Actually write the data */
-  /* for (j = 0; j < npoints; j++){ */
-  /*   strcpy(line,""); */
-  /*   // Build the data line by line */
-  /*   for (k = 0; k < size; k++){ */
-  /*     strcat(line, DATALIST[k]->data); */
-  /*     strcat(line, "\t"); */
-  /*     if (DATALIST[k]->next!=NULL){ */
-  /* 	DATALIST[k] = DATALIST[k]->next; */
-  /*     } */
-  /*   } */
-  /*   // Add a newline to each row */
-  /*   strcat(line, "\n"); */
-  /*   fprintf(file, line); */
-  /* } */
-
-  // destroy the lists
-  /* j = 0; */
-  /* for (j = 0; j<10; j++) */
-  /*   destroy_list(DATALIST[j]); */
-
-  //free(DATALIST);
-  fclose(file); 
-  return 0; 
+  int bool = 1;
+  while (bool){
+    strcpy(line,"");
+    for ( j=0;j<count; j++){
+      testpointer[j] = strtok_r(NULL,",\n", &savepointer[j]);                         
+      if (testpointer[j] == NULL){
+	fclose(file);
+	return 0;
+      }
+      else{
+	strcat(line, testpointer[j]);
+	strcat(line,"\t");
+      }
+    }
+    strcat(line,"\n");
+    fprintf(file, line);
+  }
 }
 
 
