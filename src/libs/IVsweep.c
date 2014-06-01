@@ -122,6 +122,20 @@ int setSweepVAR(int ud, const char *vars[])
   return 0;
 }
 
+int setSingleDouble(int ud, char* tmp){
+  char cmd[32]= ":PAGE:MEAS:MSET:ITIM:MODE "; 
+  strcat(cmd, tmp); 
+  _write(ud, cmd);
+  return 0; 
+}
+
+int setIntegrationTime(int ud, char* tmp){ 
+  char cmd[32]= ":PAGE:MEAS:VAR1:MODE "; 
+  strcat(cmd, tmp); 
+  _write(ud, cmd);
+  return 0; 
+}
+
 ///////////////////////////////////
 //     SWEEP MODE FUNCTIONS      //
 ///////////////////////////////////
@@ -294,7 +308,7 @@ int savedata(int ud, char* filename, char liststr[], int buffersize){
   char **DATA;
   DATA = (char**)malloc(8*sizeof(char*));
   for (j = 0; j<8; j++)
-    DATA[j] = malloc(buffersize*sizeof(char));
+    DATA[j] = (char*)malloc(buffersize*sizeof(int));
     
   // Construct the header first from our copy 
   // of liststr and write to file. Note that we 
@@ -322,6 +336,8 @@ int savedata(int ud, char* filename, char liststr[], int buffersize){
   }
   strcat(header, "\n");
  
+  printf("%s", DATA[0]);
+
   // Now we have the data AND the header constructed. 
   // At this point we need to write out the file. 
   // First we get a file pointer and print the header.

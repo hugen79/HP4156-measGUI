@@ -78,6 +78,9 @@ typedef struct{
   GtkWidget *varBUTTON;
   GtkWidget **varLABELS;
   GtkWidget **VAR;
+  // Misc control
+  GtkWidget **miscLABELS;
+  GtkWidget **MISC;
   // Separators and labels
   GtkWidget **sepLABELS;
   GtkWidget **SEP;
@@ -94,7 +97,7 @@ typedef struct{
   GtkWidget *varBUTTON_SM; 
   GtkWidget **varLABELS_SM;
   GtkWidget **VAR_SM;
-
+ 
   //////////////////////////////
   // WIDGETS COMMON TO BOTH   //
   // SWEEP AND SAMPLING MODE  //
@@ -454,6 +457,47 @@ static void generateSMU(GTKwrapper* state){
   g_signal_connect(state->smuBUTTON,"clicked", G_CALLBACK(SETSMU), state);
   g_signal_connect(state->disBUTTON,"clicked", G_CALLBACK(DISSMU), state);
 }
+
+// single double control (only for var 1)
+static void sdChanger(GtkWidget* widget, GTKwrapper* state){
+
+  char* tmp = (char*)gtk_combo_box_text_get_active_text((GtkComboBoxText*)state->MISC[0]);
+  setIntegrationTime(gpibHANDLE, tmp);
+}
+
+static void itimeChanger(GtkWidget* widget, GTKwrapper* state){
+  char* tmp = (char*)gtk_combo_box_text_get_active_text((GtkComboBoxText*)state->MISC[1]);
+  setSingleDouble(gpibHANDLE, tmp);
+}
+
+static void generateMISC(GTKwrapper *state){ 
+  state->MISC       = g_new(GtkWidget*, 2);
+  state->miscLABELS = g_new(GtkWidget*, 2); 
+
+  state->MISC[0] = gtk_combo_box_text_new ();
+  gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (state->MISC[0]),NULL, "SING");
+  gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (state->MISC[0]),NULL, "DOUB");
+  gtk_combo_box_set_active (GTK_COMBO_BOX (state->MISC[0]), 0);
+  gtk_widget_set_size_request(state->MISC[0], BWIDTH, BHEIGHT);
+  gtk_fixed_put(GTK_FIXED(state->fixed), state->MISC[0], X1, Y3);
+  g_signal_connect(state->MISC[0],"changed", G_CALLBACK(sdChanger), state);
+  // label 
+  state->miscLABELS[0] = gtk_label_new("Single/Hysteresis");
+  gtk_fixed_put(GTK_FIXED(state->fixed), state->miscLABELS[0], X1, (int)Y3-20);
+
+  state->MISC[1] = gtk_combo_box_text_new ();
+  gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (state->MISC[1]),NULL, "SHOR");
+  gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (state->MISC[1]),NULL, "MED");
+  gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (state->MISC[1]),NULL, "LONG");
+  gtk_combo_box_set_active (GTK_COMBO_BOX (state->MISC[1]), 0);
+  gtk_widget_set_size_request(state->MISC[1], BWIDTH, BHEIGHT);
+  gtk_fixed_put(GTK_FIXED(state->fixed), state->MISC[1], X2, Y3);
+  g_signal_connect(state->MISC[1],"changed", G_CALLBACK(itimeChanger), state);
+  // label 
+  state->miscLABELS[1] = gtk_label_new("Integration Time");
+  gtk_fixed_put(GTK_FIXED(state->fixed), state->miscLABELS[1], X2, (int)Y3-20);
+}
+
 
 
 ////////////////////////////////
@@ -1177,6 +1221,16 @@ static void destroySWEEPMODE(GTKwrapper* state){
       gtk_widget_destroy (state->VAR[i]);
   }
 
+  // Destroy Misc controls
+  for (i = 0; i < 2; i++){
+    if ( (state->MISC[i] !=NULL) && (GTK_IS_WIDGET(state->MISC[i])))
+      gtk_widget_destroy (state->MISC[i]);
+  }
+  for (i = 0; i < 2; i++){
+    if ( (state->miscLABELS[i] !=NULL) && (GTK_IS_WIDGET(state->miscLABELS[i])))
+      gtk_widget_destroy (state->miscLABELS[i]);
+  }
+
   // Destroy Separators
   for (i = 0; i< 3; i++){
     if ( (state->sepLABELS[i] !=NULL) && (GTK_IS_WIDGET(state->sepLABELS[i])))
@@ -1215,7 +1269,6 @@ static void destroySAMPLINGMODE(GTKwrapper* state){
       gtk_widget_destroy (state->smuLABELS_SM[i]);
   }
 
-
   if ( (state->varBUTTON_SM !=NULL) && (GTK_IS_WIDGET(state->varBUTTON_SM)))
     gtk_widget_destroy (state->varBUTTON_SM);
   for (i = 0; i < 2; i++){
@@ -1226,6 +1279,7 @@ static void destroySAMPLINGMODE(GTKwrapper* state){
     if ( (state->varLABELS_SM[i] !=NULL) && (GTK_IS_WIDGET(state->varLABELS_SM[i])))
       gtk_widget_destroy (state->varLABELS_SM[i]);
   }
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -1250,6 +1304,7 @@ static void generateSWEEPMODE (GSimpleAction *action, GVariant*parameter,  void*
     generateMODELABEL(_state,"SWEEP MODE CONTROL");
     generateSMU(_state);
     generateVAR(_state);
+    generateMISC(_state);
     generateWindowSeparators(_state);
   }
   gtk_widget_show_all(GTK_WIDGET(_state->window)); 
