@@ -82,24 +82,14 @@ int setBiasOFF(int ud){
 ///////////////////////////////
 // MEASUREMENT FUNCTIONALITY //
 ///////////////////////////////
-<<<<<<< HEAD
 char** measure(int ud, double* swp, int len, char** freq, int lenf,  int buffersize){
  
-=======
-char** measure(int ud, double* swp, int len, int buffersize){
-  
->>>>>>> 53b06224f894b3c0fe780e7e190cf754f9cb5fd3
   if (len !=0 ){
     char *swps  = malloc(32*sizeof(char));
     char *READ  = malloc(32*sizeof(char));
 
-<<<<<<< HEAD
     int i,j;
     char** DATA = malloc(sizeof(char*));
-=======
-    int i;
-    char** DATA = malloc(sizeof(char*)); 
->>>>>>> 53b06224f894b3c0fe780e7e190cf754f9cb5fd3
     DATA = (char**)malloc(len*sizeof(char*));
     for(i = 0; i<len; i++){
       DATA[i] = (char*)malloc(buffersize*sizeof(char));
@@ -109,7 +99,6 @@ char** measure(int ud, double* swp, int len, int buffersize){
       strcpy(READ, "\0");
       sprintf(swps, "%.3f", swp[i]);
       setBias(ud, swps);
-<<<<<<< HEAD
       strcpy(DATA[i], swps);
 
       for(j = 0; j<lenf; j++){
@@ -128,25 +117,12 @@ char** measure(int ud, double* swp, int len, int buffersize){
       strcat(DATA[i], "\n");
       printf("%s\n", DATA[i]);
 
-=======
-      _write(ud, "TRIG:SOUR BUS");
-      _write(ud, "TRIG");
-      READ = _read(ud, "FETC?", buffersize);
-
-      strcpy(DATA[i], swps);
-      strcat(DATA[i], "\t\t");
-      strcat(DATA[i], strtok(READ, ","));
-      strcat(DATA[i], "\t\t");
-      strcat(DATA[i], strtok(NULL, ","));
-      strcat(DATA[i], "\n");
->>>>>>> 53b06224f894b3c0fe780e7e190cf754f9cb5fd3
     }
     _write(ud, "TRIG:SOUR INT");
     _write(ud, "INIT:CONT ON");
     _write(ud, "INIT:IMM");
     setBias(ud, "0.00V");
     return DATA;
-<<<<<<< HEAD
   }
 }
 
@@ -186,49 +162,10 @@ int savedata(int ud, char* filename, char* hdata, char* oscdata, char** DATA, in
     strcat(header, tmp);
   }
   free(tmp);
-=======
-
-  }
-  else{
-    return NULL;
-  }
-}
-
-int savedata(int ud, char* filename, char* hdata, char* oscdata, char** DATA, int len){
-
-  // Construct a header. Probaby not the most efficient method
-  char* header = malloc(16*sizeof(char));
-  strcpy(header, "Vb");
-  strcat(header, "\t\t");
-
-  int i,j;
-  int split = (strlen(hdata)+1)/2;
-  char* tmp = malloc(16*sizeof(char));
-  tmp[0]='\0';
-
-  j=0;
-  for(i=0; i<strlen(hdata); i++){
-    if (i == split){ 
-      tmp[j]='\t'; j++;
-      tmp[j]='\t'; j++;
-      tmp[j]='\t'; j++;
-      tmp[j]= hdata[i]; j++;
-    }
-    else{
-      tmp[j]= hdata[i]; j++;
-    }
-  } 
-  tmp[j] = '\0';
-  strcat(header, tmp);
->>>>>>> 53b06224f894b3c0fe780e7e190cf754f9cb5fd3
   strcat(header, "\n");
 
   FILE *file;  
   file = fopen(filename,"w+"); 
-<<<<<<< HEAD
-=======
-
->>>>>>> 53b06224f894b3c0fe780e7e190cf754f9cb5fd3
   fprintf(file,oscdata);
   fprintf(file,"*\n");
   fprintf(file,header); 
@@ -238,15 +175,6 @@ int savedata(int ud, char* filename, char* hdata, char* oscdata, char** DATA, in
   fclose(file); 
 }
 
-<<<<<<< HEAD
-=======
-
-
-
-
-
-
->>>>>>> 53b06224f894b3c0fe780e7e190cf754f9cb5fd3
 /* int savedata(int ud, char* filename, char liststr[], int buffersize){ */
 
 /*   // DO nothing if liststr is empty */

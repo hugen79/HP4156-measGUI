@@ -69,15 +69,12 @@ typedef struct{
   double *swp;
   int     len;
 
-<<<<<<< HEAD
   // VARIABLES FOR OSCILLATOR CONTROL 
   char** FLST;
   char*  FREQ;
   char*  AMPL;
   int    lenf;
 
-=======
->>>>>>> 53b06224f894b3c0fe780e7e190cf754f9cb5fd3
   // VARIABLES FOR SAVING DATA
   char** DATA;
 
@@ -118,14 +115,10 @@ static int INITIALIZE_GPIB(GtkWidget *initBUTTON, GTKwrapper* state)
 }
 
 static int MEASURE(GtkWidget *widget, GTKwrapper *state){
-<<<<<<< HEAD
   // Only measure if everything is set
   if (state->len != 0 && state->lenf != 0){
     state->DATA = measure(gpibHANDLE, state->swp, state->len, state->FLST, state->lenf, BUFFERSIZE);
   }
-=======
-  state->DATA = measure(gpibHANDLE, state->swp, state->len, BUFFERSIZE);
->>>>>>> 53b06224f894b3c0fe780e7e190cf754f9cb5fd3
 }
 
 ///////////////////////////////////////////
@@ -237,7 +230,6 @@ static void generateCONTROL(GTKwrapper* state){
 }
 
 static void SETOSC(GtkWidget *widget, GTKwrapper *state){
-<<<<<<< HEAD
   state->FREQ =  (char*)gtk_entry_get_text((GtkEntry*)state->OSC[0]);
   state->AMPL =  (char*)gtk_entry_get_text((GtkEntry*)state->OSC[1]);
   setAmplitude(gpibHANDLE,state->AMPL); // Amplitude is a measurement global
@@ -261,12 +253,6 @@ static void SETOSC(GtkWidget *widget, GTKwrapper *state){
     i++;
   }
   state->lenf = i;
-=======
-  char* FREQ =  (char*)gtk_entry_get_text((GtkEntry*)state->OSC[0]);
-  char* AMPL =  (char*)gtk_entry_get_text((GtkEntry*)state->OSC[1]);
-  setFrequency(gpibHANDLE, FREQ);
-  setAmplitude(gpibHANDLE, AMPL);
->>>>>>> 53b06224f894b3c0fe780e7e190cf754f9cb5fd3
 }
 
 ////////////////////////////////////////
@@ -281,22 +267,14 @@ static void generateOSCILLATOR(GTKwrapper* state){
   gtk_editable_set_editable(GTK_EDITABLE(state->OSC[0]), TRUE);
   gtk_entry_set_width_chars((GtkEntry*)state->OSC[0],14);
   gtk_widget_set_size_request(state->OSC[0], BWIDTH, BHEIGHT);
-<<<<<<< HEAD
   gtk_entry_set_text(GTK_ENTRY(state->OSC[0]),"0.1");
-=======
-  gtk_entry_set_text(GTK_ENTRY(state->OSC[0]),"1.0");
->>>>>>> 53b06224f894b3c0fe780e7e190cf754f9cb5fd3
   gtk_fixed_put(GTK_FIXED(state->fixed), state->OSC[0], X1, Y4);
   
   state->OSC[1] = gtk_entry_new();
   gtk_editable_set_editable(GTK_EDITABLE(state->OSC[1]), TRUE);
   gtk_entry_set_width_chars((GtkEntry*)state->OSC[1],14);
   gtk_widget_set_size_request(state->OSC[1], BWIDTH, BHEIGHT);
-<<<<<<< HEAD
   gtk_entry_set_text(GTK_ENTRY(state->OSC[1]),"0.1");
-=======
-  gtk_entry_set_text(GTK_ENTRY(state->OSC[1]),"1.0");
->>>>>>> 53b06224f894b3c0fe780e7e190cf754f9cb5fd3
   gtk_fixed_put(GTK_FIXED(state->fixed), state->OSC[1], X2, Y4);
 
   state->OSC[2] = gtk_button_new_with_label("Set OSC");
@@ -305,11 +283,7 @@ static void generateOSCILLATOR(GTKwrapper* state){
   gtk_widget_set_size_request(state->OSC[2], BWIDTH, BHEIGHT);
   
   state->oscLABELS = g_new(GtkWidget*, 3);
-<<<<<<< HEAD
   state->oscLABELS[0] = gtk_label_new("Frequencies (MHz)");
-=======
-  state->oscLABELS[0] = gtk_label_new("Freq (MHz)");
->>>>>>> 53b06224f894b3c0fe780e7e190cf754f9cb5fd3
   gtk_fixed_put(GTK_FIXED(state->fixed), state->oscLABELS[0], X1, (int)Y4-20);
 
   state->oscLABELS[1] = gtk_label_new("Amplitude (V)");
@@ -326,10 +300,6 @@ static void SETSWP(GtkWidget *widget, GTKwrapper *state){
   
   if (MIN < -40.0){MIN = -40;}
   if (MAX >  40.0){MAX =  40;}
-<<<<<<< HEAD
-=======
-  free(state->swp);
->>>>>>> 53b06224f894b3c0fe780e7e190cf754f9cb5fd3
 
   // Hysteresis Mode
   if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(state->SWP[4]))){
@@ -385,11 +355,7 @@ static void generateSWEEP(GTKwrapper* state){
   gtk_editable_set_editable(GTK_EDITABLE(state->SWP[2]), TRUE);
   gtk_entry_set_width_chars((GtkEntry*)state->SWP[2],14);
   gtk_widget_set_size_request(state->SWP[2], BWIDTH, BHEIGHT);
-<<<<<<< HEAD
   gtk_entry_set_text(GTK_ENTRY(state->SWP[2]),"10");
-=======
-  gtk_entry_set_text(GTK_ENTRY(state->SWP[2]),"20");
->>>>>>> 53b06224f894b3c0fe780e7e190cf754f9cb5fd3
   gtk_fixed_put(GTK_FIXED(state->fixed), state->SWP[2], X3, Y3+20);
   
   state->SWP[3] = gtk_button_new_with_label("Set SWP");
@@ -448,7 +414,6 @@ static void SAVEDATA(GtkWidget* saveBUTTON, GTKwrapper* state){
   
   // Copy the mode of save vars into a string. We will
   // strtok this later to generate a data header
-<<<<<<< HEAD
   char* MODE = (char*)gtk_combo_box_text_get_active_text((GtkComboBoxText*)state->MOD[0]);  
   char oscdata[64] = "\0"; 
   strcpy(oscdata,"*\n");
@@ -457,19 +422,6 @@ static void SAVEDATA(GtkWidget* saveBUTTON, GTKwrapper* state){
   strcat(oscdata," MHz\n* AMPL = ");
   strcat(oscdata, state->AMPL);
   strcat(oscdata," V\n");
-=======
-  char* MODE = (char*)gtk_combo_box_text_get_active_text((GtkComboBoxText*)state->MOD[0]);
-  char* FREQ =  (char*)gtk_entry_get_text((GtkEntry*)state->OSC[0]);
-  char* AMPL =  (char*)gtk_entry_get_text((GtkEntry*)state->OSC[1]);
-  
-  char oscdata[64] = "\0"; 
-  strcpy(oscdata,"*\n");
-  strcat(oscdata,"* FREQ = ");
-  strcat(oscdata, FREQ);
-  strcat(oscdata,"MHZ AMPL = ");
-  strcat(oscdata, AMPL);
-  strcat(oscdata,"V\n");
->>>>>>> 53b06224f894b3c0fe780e7e190cf754f9cb5fd3
   
   //strcpy(tmpString, state->listSTR);
   int INC = (int)gtk_switch_get_active ((GtkSwitch*)state->saveINC);
@@ -493,20 +445,12 @@ static void SAVEDATA(GtkWidget* saveBUTTON, GTKwrapper* state){
     // update the file name in the entry field
     gtk_entry_set_text(GTK_ENTRY(state->saveENTRY), tmpPath);
     state->increment++;
-<<<<<<< HEAD
     savedata(gpibHANDLE, tmpPath, MODE, oscdata, state->DATA, state->len, state->lenf);
-=======
-    savedata(gpibHANDLE, tmpPath, MODE, oscdata, state->DATA, state->len);
->>>>>>> 53b06224f894b3c0fe780e7e190cf754f9cb5fd3
   }
   else {
     // if the incrementor is deselected then reset.
     state->increment = 0;
-<<<<<<< HEAD
     savedata(gpibHANDLE, state->filename, MODE, oscdata, state->DATA, state->len, state->lenf);
-=======
-    savedata(gpibHANDLE, state->filename, MODE, oscdata, state->DATA, state->len);
->>>>>>> 53b06224f894b3c0fe780e7e190cf754f9cb5fd3
   }
 }
 
@@ -582,11 +526,7 @@ static void activate (GtkApplication *app, GTKwrapper* state)
   gtk_widget_set_size_request (state->fixed, WIDTH, HEIGHT);
   gtk_container_add(GTK_CONTAINER(state->window), state->fixed);
 
-<<<<<<< HEAD
   generateMODELABEL(state,"CV \n  Control \n\t v1.1");
-=======
-  generateMODELABEL(state,"CV \n  Control \n\t v1.0");
->>>>>>> 53b06224f894b3c0fe780e7e190cf754f9cb5fd3
   generateINIT(state);
   generateCONTROL(state);
   generateOSCILLATOR(state);
