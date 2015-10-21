@@ -253,6 +253,7 @@ static void SETOSC(GtkWidget *widget, GTKwrapper *state){
     i++;
   }
   state->lenf = i;
+  setFrequency(gpibHANDLE, state->FLST[0]);
 }
 
 ////////////////////////////////////////
